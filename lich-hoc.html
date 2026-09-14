@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch Học — Tiếng Nhật · Đại học CNTT · IT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EF;
+    --paper-dim:#F1EAD9;
+    --ink:#2B2823;
+    --ink-soft:#6B6459;
+    --line:#DED4BE;
+    --jp:#8B2E3C;      /* washi red - tiếng Nhật */
+    --jp-soft:#F4E4E2;
+    --it:#2C4A63;      /* indigo/slate - IT */
+    --it-soft:#E2EAF0;
+    --dh:#8A6A1E;       /* amber/gold - Đại học */
+    --dh-soft:#F2E9D3;
+    --ok:#4C7A57;
+    --half:#B8860A;
+    --shadow: 0 1px 2px rgba(43,40,35,0.06), 0 4px 14px rgba(43,40,35,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans','Noto Sans JP',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  .jp-text{font-family:'Noto Serif JP','Noto Sans JP',serif;}
+
+  header.top{
+    background:var(--ink);
+    color:var(--paper);
+    padding:22px 18px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"学";
+    font-family:'Noto Serif JP',serif;
+    position:absolute;
+    right:-10px; top:-30px;
+    font-size:160px;
+    opacity:0.06;
+    color:var(--paper);
+  }
+  header.top h1{
+    margin:0 0 4px;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  header.top p.sub{
+    margin:0;
+    font-size:13px;
+    opacity:0.7;
+  }
+
+  #authScreen{
+    max-width:380px;
+    margin:60px auto;
+    padding:0 20px;
+  }
+  #authScreen h2{font-size:18px;margin-bottom:4px;}
+  #authScreen p{color:var(--ink-soft);font-size:13.5px;margin-top:0;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:5px;}
+  .field input{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-size:15px;
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--it);outline-offset:1px;}
+  .btn{
+    display:inline-block;
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    font-size:14.5px;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+  }
+  .btn:active{opacity:0.85;}
+  .btn-link{
+    background:none;border:none;color:var(--it);
+    font-size:13px;cursor:pointer;padding:8px 0;text-decoration:underline;
+  }
+  .authErr{color:var(--jp);font-size:13px;margin-top:8px;min-height:16px;}
+
+  #app{display:none;}
+
+  .statusbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 18px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:var(--paper-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .statusbar button{
+    background:none;border:none;color:var(--it);font-size:12.5px;cursor:pointer;
+  }
+
+  .progressWrap{padding:16px 18px 4px;}
+  .progressTitle{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .progressTitle b{font-weight:700;}
+  .progressBar{height:8px;border-radius:5px;background:var(--paper-dim);overflow:hidden;border:1px solid var(--line);}
+  .progressFill{height:100%;background:var(--ok);transition:width .35s ease;}
+
+  .schedule{
+    margin:16px 18px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:var(--shadow);
+    font-size:13px;
+  }
+  .schedule h3{margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);font-weight:600;text-transform:none;}
+  .schedule-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);}
+  .schedule-row:last-child{border-bottom:none;}
+  .schedule-row span:first-child{font-weight:600;}
+  .schedule-row span:last-child{color:var(--ink-soft);text-align:right;}
+
+  .weekBlock{margin:18px 18px 0;}
+  .weekHeader{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:10px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .weekHeader .wt{font-size:14px;font-weight:700;}
+  .weekHeader .wg{font-size:11.5px;opacity:0.7;margin-top:2px;}
+  .weekHeader .chev{transition:transform .2s;font-size:13px;}
+  .weekHeader.open .chev{transform:rotate(180deg);}
+  .weekBody{display:none;padding-top:10px;}
+  .weekBody.open{display:block;}
+
+  .dayCard{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:10px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .dayHead{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;
+    cursor:pointer;
+  }
+  .dayHead .dn{font-size:13.5px;font-weight:700;}
+  .dayHead .dd{font-size:11.5px;color:var(--ink-soft);}
+  .dots{display:flex;gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
+  .dot.on-jp{background:var(--jp);}
+  .dot.on-it{background:var(--it);}
+  .dot.on-dh{background:var(--dh);}
+  .dot.half{opacity:0.45;}
+
+  .dayBody{display:none;border-top:1px solid var(--line);}
+  .dayBody.open{display:block;}
+
+  .subj{
+    padding:12px 14px;
+    border-bottom:1px solid var(--paper-dim);
+  }
+  .subj:last-child{border-bottom:none;}
+  .subjHead{display:flex;align-items:center;gap:10px;}
+  .statusBtn{
+    flex-shrink:0;
+    width:26px;height:26px;
+    border-radius:7px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .statusBtn.state-full{background:var(--ok);border-color:var(--ok);color:#fff;}
+  .statusBtn.state-half{background:var(--half);border-color:var(--half);color:#fff;}
+  .subjLabel{font-size:13.5px;font-weight:600;flex:1;}
+  .subjLabel small{display:block;font-weight:400;color:var(--ink-soft);font-size:12px;margin-top:1px;}
+  .tag{font-size:10.5px;padding:2px 7px;border-radius:20px;font-weight:600;}
+  .tag.jp{background:var(--jp-soft);color:var(--jp);}
+  .tag.it{background:var(--it-soft);color:var(--it);}
+  .tag.dh{background:var(--dh-soft);color:var(--dh);}
+  .content{
+    margin-top:9px;
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--ink);
+    padding-left:36px;
+  }
+  .content ul{margin:6px 0;padding-left:18px;}
+  .content li{margin-bottom:3px;}
+  .content .ex{
+    background:var(--paper-dim);
+    border-left:3px solid var(--line);
+    padding:6px 10px;
+    margin:6px 0;
+    border-radius:4px;
+    font-size:13px;
+  }
+  .content code{
+    background:var(--paper-dim);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:12.5px;
+  }
+
+  footer.legend{
+    margin:22px 18px 0;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    display:flex;gap:14px;flex-wrap:wrap;
+  }
+  footer.legend span{display:flex;align-items:center;gap:5px;}
+  footer.legend .sw{width:12px;height:12px;border-radius:4px;border:1.5px solid var(--line);}
+  footer.legend .sw.full{background:var(--ok);border-color:var(--ok);}
+  footer.legend .sw.half{background:var(--half);border-color:var(--half);}
+
+  .syncNote{margin:22px 18px 30px;font-size:11.5px;color:var(--ink-soft);text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Lịch Học Tháng 1</h1>
+  <p class="sub">Tiếng Nhật · Đại học CNTT · IT thực hành — hướng tới IT Support / 社内SE</p>
+</header>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <h2 id="authTitle">Đăng nhập</h2>
+  <p id="authSub">Đăng nhập để tiến độ học đồng bộ trên mọi thiết bị.</p>
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="authEmail" autocomplete="email">
+  </div>
+  <div class="field">
+    <label>Mật khẩu</label>
+    <input type="password" id="authPass" autocomplete="current-password">
+  </div>
+  <button class="btn" id="authSubmit">Đăng nhập</button>
+  <div style="text-align:center;">
+    <button class="btn-link" id="authToggle">Chưa có tài khoản? Tạo tài khoản mới</button>
+  </div>
+  <div class="authErr" id="authErr"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="statusbar">
+    <span id="userEmail"></span>
+    <button id="logoutBtn">Đăng xuất</button>
+  </div>
+
+  <div class="progressWrap">
+    <div class="progressTitle"><span>Tiến độ Tháng 1</span><b id="progressPct">0%</b></div>
+    <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="schedule">
+    <h3>⏱ Lịch cố định hằng tuần</h3>
+    <div class="schedule-row"><span>Thứ 2 – Thứ 5</span><span>17:00 Nhật · 18:00 IT/ĐH</span></div>
+    <div class="schedule-row"><span>Thứ 6</span><span>17:00 Nhật, sau đó nghỉ</span></div>
+    <div class="schedule-row"><span>Thứ 7</span><span>09:00 IT · 14:00 ĐH · 20:00 Nhật (ôn)</span></div>
+    <div class="schedule-row"><span>Chủ nhật</span><span>09:00 Nhật · 10:15 ĐH</span></div>
+  </div>
+
+  <div id="weeksContainer"></div>
+
+  <footer class="legend">
+    <span><i class="sw full"></i> Đã học đủ</span>
+    <span><i class="sw half"></i> Học một phần</span>
+    <span><i class="sw"></i> Chưa học</span>
+  </footer>
+  <p class="syncNote">Bấm vào ô vuông để đổi trạng thái · Bấm vào từng dòng để xem nội dung bài học</p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnvpsjVl9O-9569AU4AsCAh9qDCCty0S8",
+  authDomain: "lich-hoc-tieng-nhat-va-it.firebaseapp.com",
+  projectId: "lich-hoc-tieng-nhat-va-it",
+  storageBucket: "lich-hoc-tieng-nhat-va-it.firebasestorage.app",
+  messagingSenderId: "927651197581",
+  appId: "1:927651197581:web:4c00d6d1b3a8ead82de8c4"
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+/* ============ NỘI DUNG BÀI HỌC ============ */
+const WEEKS = [
+{
+  title: "Tuần 1 — Nền tảng",
+  goal: "Hiragana/Katakana + です + phần cứng máy tính + CNTT là gì",
+  days: [
+    { d:"Thứ 2", date:"Ngày 01",
+      jp:{t:"Hiragana / Katakana", h:`<ul>
+        <li>Hiragana dùng cho từ thuần Nhật &amp; ngữ pháp. Katakana dùng cho từ mượn nước ngoài.</li>
+        <li><b>Âm dài (長音)</b>: nguyên âm kéo dài gấp đôi — おかあさん (mẹ). Đọc ngắn thành おかさん là sai nghĩa.</li>
+        <li><b>Âm ghép (拗音)</b>: chữ nhỏ ゃゅょ sau âm hàng i — きょう (hôm nay), しゅくだい.</li>
+        <li><b>Âm ngắt (促音)</b>: chữ っ nhỏ, ngừng một nhịp — がっこう (trường học).</li>
+      </ul><div class="ex">Luyện đọc: がっこう / きょう / おかあさん</div>`},
+      it:{t:"CPU, RAM, SSD, các linh kiện chính", h:`<ul>
+        <li><b>CPU</b> — bộ não xử lý mọi phép tính và lệnh.</li>
+        <li><b>RAM</b> — bộ nhớ tạm, mất điện là mất dữ liệu, càng nhiều chạy đa nhiệm càng mượt.</li>
+        <li><b>SSD/HDD</b> — lưu trữ lâu dài; SSD nhanh hơn HDD vì không có đĩa quay cơ học.</li>
+        <li><b>Mainboard</b> — kết nối mọi linh kiện. <b>GPU</b> — xử lý đồ họa. <b>PSU</b> — cấp điện.</li>
+        <li><b>BIOS/UEFI</b> — phần mềm khởi động đầu tiên, trước cả Windows.</li>
+      </ul>`},
+      dh:{t:"CNTT là gì?", h:`<p>5 lĩnh vực chính của CNTT: Programming, Database, Network, Operating System, Information Security. Chưa cần học sâu — chỉ cần nhận diện được từng lĩnh vực làm gì.</p>`} },
+    { d:"Thứ 3", date:"Ngày 02",
+      jp:{t:"です / じゃありません / ですか", h:`<div class="ex">わたしは ベトナムじんです。<br>(Tôi là người Việt Nam.)</div>
+        <ul><li>です = "là" (lịch sự). じゃありません = phủ định. ですか = câu hỏi.</li></ul>`},
+      it:{t:"Kiểm tra thông số máy", h:`<p>Windows → <code>Settings → System → About</code>. Ghi lại: CPU, RAM, Windows version, System type (32-bit/64-bit).</p>`},
+      dh:{t:"Phần cứng máy tính (ôn)", h:`<p>Liên hệ lại các linh kiện đã học hôm qua với vai trò của chúng trong một hệ thống hoàn chỉnh.</p>`} },
+    { d:"Thứ 4", date:"Ngày 03",
+      jp:{t:"Trợ từ は / の / も / か", h:`<ul>
+        <li><code>は</code> — chủ đề câu. <code>の</code> — sở hữu (của). <code>も</code> — "cũng". <code>か</code> — câu hỏi.</li>
+      </ul><div class="ex">わたしの なまえは タインです。(Tên tôi là Thanh.)</div>`},
+      it:{t:"Windows cơ bản", h:`<p>Làm quen giao diện Windows: Start Menu, Taskbar, File Explorer, Control Panel/Settings.</p>`},
+      dh:{t:"Hệ điều hành", h:`<p>Hệ điều hành (OS) quản lý phần cứng và chạy phần mềm. Ví dụ: Windows, macOS, Linux.</p>`} },
+    { d:"Thứ 5", date:"Ngày 04",
+      jp:{t:"Số đếm + giờ", h:`<ul><li>いち に さん し ご ろく しち はち きゅう じゅう</li>
+        <li><code>～じ</code> giờ, <code>～ふん</code> phút, <code>～ようび</code> thứ trong tuần.</li></ul>
+        <div class="ex">いま しちじ はんです。(Bây giờ là 7 giờ rưỡi.)</div>`},
+      it:{t:"Task Manager", h:`<p>Mở Task Manager (Ctrl+Shift+Esc), quan sát 4 tab: CPU, Memory, Disk, Network — hiểu máy đang "bận" ở đâu.</p>`},
+      dh:{t:"Ôn CNTT tuần 1", h:`<p>Tổng hợp lại 5 lĩnh vực CNTT đã học.</p>`} },
+    { d:"Thứ 6", date:"Ngày 05",
+      jp:{t:"Ôn tuần 1", h:`<p>Ôn lại: Hiragana/Katakana, です/じゃありません/ですか, trợ từ は/の/も/か, số đếm + giờ.</p>`},
+      it:{t:"—", h:`<p>Nghỉ theo lịch cố định (chỉ học Nhật thứ 6).</p>`},
+      dh:{t:"—", h:`<p>Nghỉ theo lịch cố định.</p>`} },
+    { d:"Thứ 7", date:"Ngày 06",
+      jp:{t:"Nghe 30 phút", h:`<p>Nghe hội thoại N5 cơ bản (chào hỏi, giới thiệu), không cần hiểu 100%, tập làm quen ngữ điệu.</p>`},
+      it:{t:"Device Manager", h:`<p>Mở Device Manager, xem danh sách driver/thiết bị đang kết nối với máy.</p>`},
+      dh:{t:"5 lĩnh vực CNTT", h:`<p>Đọc kỹ hơn: Programming (viết phần mềm), Database (lưu trữ dữ liệu có cấu trúc), Network (kết nối máy tính), OS (quản lý hệ thống), Security (bảo vệ dữ liệu).</p>`} },
+    { d:"Chủ nhật", date:"Ngày 07",
+      jp:{t:"Tự giới thiệu bản thân", h:`<p>Tự nói khoảng 10 câu: tên, quốc tịch, nơi ở, công việc — dùng です/の/は đã học.</p>`},
+      it:{t:"Ôn Windows", h:`<p>Ôn lại Settings, Task Manager, Device Manager.</p>`},
+      dh:{t:"Ôn tuần 1", h:`<p>Tổng ôn kiến thức CNTT tuần 1.</p>`} },
+  ]
+},
+{
+  title: "Tuần 2 — Windows",
+  goal: "これ/それ/あれ + File/Folder + Thuật toán cơ bản",
+  days: [
+    { d:"Thứ 2", date:"Ngày 08",
+      jp:{t:"これ / それ / あれ", h:`<ul><li>これ = cái này (gần người nói). それ = cái đó (gần người nghe). あれ = cái kia (xa cả hai).</li></ul>
+        <div class="ex">これは ほんです。(Đây là quyển sách.)</div>`},
+      it:{t:"File, Folder, Path, Extension", h:`<p>File = tệp tin. Folder = thư mục. Path = đường dẫn tới file (vd <code>C:\\Users\\...</code>). Extension = phần đuôi (.docx, .exe) quyết định loại file.</p>`},
+      dh:{t:"Algorithm — Thuật toán là gì?", h:`<p>Thuật toán = các bước giải quyết vấn đề theo thứ tự rõ ràng.</p>`} },
+    { d:"Thứ 3", date:"Ngày 09",
+      jp:{t:"この / その / あの", h:`<ul><li>Đi kèm danh từ: この ほん (quyển sách này), その ペン (cây bút đó).</li></ul>`},
+      it:{t:"Tạo cấu trúc thư mục", h:`<div class="ex">IT-LAB/<br>├── Documents<br>├── Pictures<br>├── Backup<br>└── Test</div><p>Thực hành tạo/copy/đổi tên/xóa file trong cấu trúc trên.</p>`},
+      dh:{t:"Input → Process → Output", h:`<div class="ex">Nhập tuổi → Kiểm tra tuổi ≥ 18? → Có: Người lớn / Không: Chưa đủ tuổi</div>`} },
+    { d:"Thứ 4", date:"Ngày 10",
+      jp:{t:"ここ / そこ / あそこ", h:`<ul><li>Chỉ nơi chốn: ここ (ở đây), そこ (ở đó), あそこ (ở kia).</li></ul>`},
+      it:{t:"User Account", h:`<p>Tài khoản người dùng trên Windows — mỗi account có dữ liệu và quyền riêng.</p>`},
+      dh:{t:"Python: print()", h:`<div class="ex">print("Hello World")</div>`} },
+    { d:"Thứ 5", date:"Ngày 11",
+      jp:{t:"あります / います", h:`<ul><li>あります — dùng cho vật vô tri (đồ vật). います — dùng cho người/động vật.</li></ul>
+        <div class="ex">つくえの うえに ほんが あります。(Trên bàn có quyển sách.)</div>`},
+      it:{t:"Administrator", h:`<p>Tài khoản Administrator có quyền cài đặt phần mềm, thay đổi hệ thống — cần cẩn trọng khi dùng.</p>`},
+      dh:{t:"Python: variable", h:`<div class="ex">name = "Tuấn Anh"<br>age = 25</div>`} },
+    { d:"Thứ 6", date:"Ngày 12",
+      jp:{t:"Ôn từ vựng (nhà máy)", h:`<p>Từ vựng chủ đề nhà → công ty → nhà máy: かいしゃ (công ty), こうじょう (nhà máy), つくえ (bàn), いす (ghế), でんわ (điện thoại), パソコン (máy tính), きかい (máy móc).</p>`},
+      it:{t:"—", h:`<p>Nghỉ.</p>`}, dh:{t:"—", h:`<p>Nghỉ.</p>`} },
+    { d:"Thứ 7", date:"Ngày 13",
+      jp:{t:"Nghe 30 phút", h:`<p>Nghe hội thoại nơi làm việc cơ bản.</p>`},
+      it:{t:"Event Viewer", h:`<p>Công cụ xem log lỗi hệ thống — bước đầu để chẩn đoán sự cố Windows.</p>`},
+      dh:{t:"Python: input()", h:`<div class="ex">name = input("Nhập tên: ")<br>print("Xin chào " + name)</div>`} },
+    { d:"Chủ nhật", date:"Ngày 14",
+      jp:{t:"Mô tả căn phòng", h:`<p>Tập câu dùng あります/います để mô tả đồ vật trong phòng.</p>`},
+      it:{t:"Ôn Windows tuần 2", h:`<p>Ôn File/Folder, User Account, Event Viewer.</p>`},
+      dh:{t:"Ôn Python cơ bản", h:`<p>Ôn print(), variable, input().</p>`} },
+  ]
+},
+{
+  title: "Tuần 3 — Network",
+  goal: "Động từ ～ます + IP/DNS/Gateway + if/else",
+  days: [
+    { d:"Thứ 2", date:"Ngày 15",
+      jp:{t:"Động từ nhóm cơ bản", h:`<ul><li>たべます (ăn), のみます (uống), いきます (đi), きます (đến), みます (xem), します (làm), はたらきます (làm việc).</li></ul>`},
+      it:{t:"IP Address là gì?", h:`<p>Địa chỉ định danh một thiết bị trên mạng, dạng <code>192.168.1.1</code>.</p>`},
+      dh:{t:"Boolean", h:`<p>Kiểu dữ liệu chỉ có 2 giá trị: True / False — nền tảng của mọi điều kiện logic.</p>`} },
+    { d:"Thứ 3", date:"Ngày 16",
+      jp:{t:"～ません", h:`<div class="ex">わたしは にくを たべません。(Tôi không ăn thịt.)</div>`},
+      it:{t:"ipconfig", h:`<p>Lệnh CMD xem địa chỉ IP, Subnet Mask, Default Gateway của máy.</p>`},
+      dh:{t:"If / Else", h:`<div class="ex">if age >= 18:<br>&nbsp;&nbsp;print("Adult")<br>else:<br>&nbsp;&nbsp;print("Minor")</div>`} },
+    { d:"Thứ 4", date:"Ngày 17",
+      jp:{t:"～ました", h:`<div class="ex">きのう えいがを みました。(Hôm qua tôi đã xem phim.)</div>`},
+      it:{t:"ping", h:`<p><code>ping 8.8.8.8</code> — kiểm tra kết nối tới một địa chỉ. Mất gói (timeout) nghĩa là không kết nối được.</p>`},
+      dh:{t:"Bài Python đơn giản", h:`<p>Kết hợp input + if/else: nhập tuổi → in Adult/Minor.</p>`} },
+    { d:"Thứ 5", date:"Ngày 18",
+      jp:{t:"～ませんでした", h:`<div class="ex">きのう べんきょうしませんでした。(Hôm qua tôi đã không học.)</div>`},
+      it:{t:"Gateway", h:`<p>Cổng nối giữa mạng nội bộ và Internet — mọi traffic ra ngoài đều đi qua Gateway trước.</p>`},
+      dh:{t:"Ôn Python", h:`<p>Ôn if/else + boolean.</p>`} },
+    { d:"Thứ 6", date:"Ngày 19",
+      jp:{t:"Ôn động từ", h:`<p>Ôn ～ます/～ません/～ました/～ませんでした.</p>`},
+      it:{t:"—", h:`<p>Nghỉ.</p>`}, dh:{t:"—", h:`<p>Nghỉ.</p>`} },
+    { d:"Thứ 7", date:"Ngày 20",
+      jp:{t:"Nghe + nói", h:`<p>Luyện nghe kết hợp tự nói lại câu vừa nghe.</p>`},
+      it:{t:"DNS là gì?", h:`<p>Hệ thống dịch tên miền (google.com) thành địa chỉ IP.</p>`},
+      dh:{t:"Bài tập Python", h:`<p>Mở rộng: nhập nhiệt độ → in nóng/bình thường/lạnh.</p>`} },
+    { d:"Chủ nhật", date:"Ngày 21",
+      jp:{t:"Nói về một ngày", h:`<div class="ex">6じに おきます。6じ20ぷんに しごとへ いきます。</div>`},
+      it:{t:"nslookup", h:`<p><code>nslookup google.com</code> — tra ngược tên miền ra địa chỉ IP, dùng để kiểm tra DNS hoạt động.</p>`},
+      dh:{t:"Ôn tuần 3", h:`<p>Ôn IP/Gateway/DNS + if/else.</p>`} },
+  ]
+},
+{
+  title: "Tuần 4 — Tổng hợp",
+  goal: "Ôn tổng hợp + bài troubleshooting hoàn chỉnh + kiểm tra cuối tháng",
+  days: [
+    { d:"Thứ 2", date:"Ngày 22",
+      jp:{t:"Ôn N5/N4 tổng quát", h:`<p>Ôn lại toàn bộ ngữ pháp đã học trong tháng.</p>`},
+      it:{t:"Computer (ôn)", h:`<p>Ôn CPU/RAM/SSD/Mainboard.</p>`},
+      dh:{t:"IP + Gateway (ôn)", h:`<p>Ôn lại cách IP và Gateway hoạt động cùng nhau.</p>`} },
+    { d:"Thứ 3", date:"Ngày 23",
+      jp:{t:"Trợ từ (ôn)", h:`<p>Ôn は/の/も/か.</p>`},
+      it:{t:"Operating System (ôn)", h:`<p>Ôn vai trò hệ điều hành.</p>`},
+      dh:{t:"DHCP", h:`<p>Giao thức tự động cấp IP cho thiết bị khi vào mạng, không cần cấu hình tay.</p>`} },
+    { d:"Thứ 4", date:"Ngày 24",
+      jp:{t:"Thời gian (ôn)", h:`<p>Ôn số đếm + じ/ふん/ようび.</p>`},
+      it:{t:"Network (ôn)", h:`<p>Ôn IP/Gateway/DNS/DHCP.</p>`},
+      dh:{t:"DNS (ôn)", h:`<p>Ôn cách phân giải tên miền.</p>`} },
+    { d:"Thứ 5", date:"Ngày 25",
+      jp:{t:"Công việc", h:`<p>Từ vựng + mẫu câu mô tả công việc hằng ngày.</p>`},
+      it:{t:"Programming (ôn)", h:`<p>Ôn print/variable/input/if-else.</p>`},
+      dh:{t:"Ping Gateway", h:`<p>Bước đầu tiên khi troubleshoot mạng: ping vào Gateway để xác nhận mạng nội bộ hoạt động.</p>`} },
+    { d:"Thứ 6", date:"Ngày 26",
+      jp:{t:"Nhà máy (ôn)", h:`<p>Ôn từ vựng công ty/nhà máy.</p>`},
+      it:{t:"Database (giới thiệu)", h:`<p>Nơi lưu trữ dữ liệu có cấu trúc — bảng, hàng, cột. Ví dụ: MySQL, SQL Server.</p>`},
+      dh:{t:"Ping Internet", h:`<p>Sau khi ping Gateway thành công, ping ra ngoài (vd 8.8.8.8) để xác nhận có Internet.</p>`} },
+    { d:"Thứ 7", date:"Ngày 27",
+      jp:{t:"Nghe tiếng Nhật", h:`<p>Nghe tổng hợp các chủ đề đã học trong tháng.</p>`},
+      it:{t:"Ôn 5 lĩnh vực CNTT", h:`<p>Programming / Database / Network / OS / Security.</p>`},
+      dh:{t:"DNS troubleshooting", h:`<p>Nếu ping IP được nhưng ping tên miền không được → nghi ngờ lỗi DNS.</p>`} },
+    { d:"Chủ nhật", date:"Ngày 28",
+      jp:{t:"Ôn toàn bộ tháng", h:`<p>Tổng ôn: bảng chữ cái, です, これ/それ/あれ, あります/います, động từ, trợ từ, thời gian.</p>`},
+      it:{t:"Ôn tháng 1", h:`<p>Tổng ôn Windows + Network + Programming cơ bản.</p>`},
+      dh:{t:"Bài kiểm tra: Troubleshooting hoàn chỉnh", h:`<p><b>Tình huống:</b> Máy tính không vào được Internet. Kiểm tra theo thứ tự:</p>
+        <div class="ex">Wi-Fi/LAN → IP → Gateway → Ping Gateway → Ping Internet → DNS → Browser</div>
+        <p>Viết ra: Problem → Check → Cause → Solution.</p>
+        <p><b>Kiểm tra Nhật:</b> tự nói 2–3 phút giới thiệu bản thân — tên, nơi ở, công việc, giờ làm, ngày nghỉ, sở thích.</p>` } },
+  ]
+},
+];
+
+/* ============ STATE ============ */
+let currentUser = null;
+let progress = {};     // { "w0d0-jp": "full" | "half", ... }
+let saveTimer = null;
+
+const STATES = ["", "half", "full"]; // cycle order
+const STATE_ICON = { "":"", "half":"◐", "full":"☑" };
+
+function dayKey(w,d,subj){ return `w${w}d${d}-${subj}`; }
+function localKey(){ return "lichhoc_progress_" + (currentUser ? currentUser.uid : "guest"); }
+
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(localKey());
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveLocal(data){
+  localStorage.setItem(localKey(), JSON.stringify(data));
+}
+
+async function loadFromFirestore(){
+  const ref = doc(db, "users", currentUser.uid, "progress", "month1");
+  const snap = await getDoc(ref);
+  if(snap.exists()) return snap.data();
+  return null;
+}
+async function saveToFirestore(data){
+  const ref = doc(db, "users", currentUser.uid, "progress", "month1");
+  await setDoc(ref, { ...data, updatedAt: Date.now() }, { merge:false });
+}
+
+function scheduleSave(){
+  saveLocal({ ...progress, updatedAt: Date.now() });
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ saveToFirestore(progress).catch(console.error); }, 800);
+}
+
+/* ============ RENDER ============ */
+function render(){
+  const container = document.getElementById("weeksContainer");
+  container.innerHTML = "";
+  WEEKS.forEach((week, wi)=>{
+    const wrap = document.createElement("div");
+    wrap.className = "weekBlock";
+
+    const head = document.createElement("div");
+    head.className = "weekHeader";
+    head.innerHTML = `<div><div class="wt">${week.title}</div><div class="wg">${week.goal}</div></div><div class="chev">▾</div>`;
+    head.onclick = ()=>{
+      head.classList.toggle("open");
+      body.classList.toggle("open");
+    };
+    wrap.appendChild(head);
+
+    const body = document.createElement("div");
+    body.className = "weekBody" + (wi===0 ? " open" : "");
+    if(wi===0) head.classList.add("open");
+
+    week.days.forEach((day, di)=>{
+      const card = document.createElement("div");
+      card.className = "dayCard";
+
+      const dhead = document.createElement("div");
+      dhead.className = "dayHead";
+      dhead.innerHTML = `<div><div class="dn">${day.d} <span class="dd">— ${day.date}</span></div></div>
+        <div class="dots" id="dots-${wi}-${di}"></div>`;
+      dhead.onclick = ()=>{ dbody.classList.toggle("open"); };
+      card.appendChild(dhead);
+
+      const dbody = document.createElement("div");
+      dbody.className = "dayBody";
+
+      [["jp","🇯🇵 Tiếng Nhật",day.jp],["it","💻 IT",day.it],["dh","🎓 Đại học CNTT",day.dh]].forEach(([key,label,info])=>{
+        const subj = document.createElement("div");
+        subj.className = "subj";
+        const k = dayKey(wi,di,key);
+        const state = progress[k] || "";
+        subj.innerHTML = `
+          <div class="subjHead">
+            <button class="statusBtn ${state==="full"?"state-full":state==="half"?"state-half":""}" data-key="${k}">${STATE_ICON[state]||""}</button>
+            <div class="subjLabel">${label} <span class="tag ${key}">${info.t}</span></div>
+          </div>
+          <div class="content" style="display:none">${info.h}</div>
+        `;
+        subj.querySelector(".subjLabel").onclick = ()=>{
+          const c = subj.querySelector(".content");
+          c.style.display = c.style.display === "none" ? "block" : "none";
+        };
+        subj.querySelector(".statusBtn").onclick = (e)=>{
+          e.stopPropagation();
+          const idx = STATES.indexOf(progress[k] || "");
+          const next = STATES[(idx+1) % STATES.length];
+          if(next === "") delete progress[k]; else progress[k] = next;
+          scheduleSave();
+          render();
+        };
+        dbody.appendChild(subj);
+      });
+
+      card.appendChild(dbody);
+      body.appendChild(card);
+
+      // dots
+      setTimeout(()=>{
+        const dotsEl = document.getElementById(`dots-${wi}-${di}`);
+        if(!dotsEl) return;
+        dotsEl.innerHTML = ["jp","it","dh"].map(key=>{
+          const s = progress[dayKey(wi,di,key)] || "";
+          const cls = s ? `on-${key}` : "";
+          const half = s === "half" ? "half" : "";
+          return `<div class="dot ${cls} ${half}"></div>`;
+        }).join("");
+      },0);
+    });
+
+    wrap.appendChild(body);
+    container.appendChild(wrap);
+  });
+
+  updateProgressBar();
+}
+
+function updateProgressBar(){
+  const totalSubjSlots = WEEKS.reduce((sum,w)=>sum + w.days.length*3, 0);
+  let score = 0;
+  Object.values(progress).forEach(v=>{
+    if(v === "full") score += 1;
+    else if(v === "half") score += 0.5;
+  });
+  const pct = Math.round((score/totalSubjSlots)*100);
+  document.getElementById("progressPct").textContent = pct + "%";
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+/* ============ AUTH ============ */
+let isRegisterMode = false;
+const authTitle = document.getElementById("authTitle");
+const authSub = document.getElementById("authSub");
+const authSubmit = document.getElementById("authSubmit");
+const authToggle = document.getElementById("authToggle");
+const authErr = document.getElementById("authErr");
+
+authToggle.onclick = ()=>{
+  isRegisterMode = !isRegisterMode;
+  authTitle.textContent = isRegisterMode ? "Tạo tài khoản" : "Đăng nhập";
+  authSub.textContent = isRegisterMode ? "Tạo tài khoản để lưu tiến độ học." : "Đăng nhập để tiến độ học đồng bộ trên mọi thiết bị.";
+  authSubmit.textContent = isRegisterMode ? "Tạo tài khoản" : "Đăng nhập";
+  authToggle.textContent = isRegisterMode ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Tạo tài khoản mới";
+  authErr.textContent = "";
+};
+
+authSubmit.onclick = async ()=>{
+  const email = document.getElementById("authEmail").value.trim();
+  const pass = document.getElementById("authPass").value;
+  authErr.textContent = "";
+  if(!email || !pass){ authErr.textContent = "Nhập đầy đủ email và mật khẩu."; return; }
+  try{
+    if(isRegisterMode){
+      await createUserWithEmailAndPassword(auth, email, pass);
+    }else{
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
+  }catch(e){
+    authErr.textContent = translateAuthError(e.code);
+  }
+};
+
+function translateAuthError(code){
+  const map = {
+    "auth/invalid-email":"Email không hợp lệ.",
+    "auth/user-not-found":"Tài khoản không tồn tại.",
+    "auth/wrong-password":"Sai mật khẩu.",
+    "auth/email-already-in-use":"Email đã được đăng ký.",
+    "auth/weak-password":"Mật khẩu cần ít nhất 6 ký tự.",
+    "auth/invalid-credential":"Email hoặc mật khẩu không đúng.",
+  };
+  return map[code] || "Có lỗi xảy ra, thử lại.";
+}
+
+document.getElementById("logoutBtn").onclick = ()=> signOut(auth);
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if(user){
+    document.getElementById("authScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("userEmail").textContent = user.email;
+
+    // dual-storage: load local first for instant UI, then reconcile with Firestore
+    const local = loadLocal();
+    progress = { ...local };
+    delete progress.updatedAt;
+    render();
+
+    try{
+      const remote = await loadFromFirestore();
+      if(remote){
+        const localTs = local.updatedAt || 0;
+        const remoteTs = remote.updatedAt || 0;
+        if(remoteTs >= localTs){
+          progress = { ...remote };
+          delete progress.updatedAt;
+          saveLocal({ ...progress, updatedAt: remoteTs });
+          render();
+        }else{
+          await saveToFirestore(progress);
+        }
+      }else{
+        await saveToFirestore(progress);
+      }
+    }catch(e){ console.error("Sync error:", e); }
+  }else{
+    document.getElementById("authScreen").style.display = "block";
+    document.getElementById("app").style.display = "none";
+  }
+});
+</script>
+</body>
+</html>
