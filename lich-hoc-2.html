@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch Học — Tiếng Nhật · Đại học CNTT · IT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EF;
+    --paper-dim:#F1EAD9;
+    --ink:#2B2823;
+    --ink-soft:#6B6459;
+    --line:#DED4BE;
+    --jp:#8B2E3C;      /* washi red - tiếng Nhật */
+    --jp-soft:#F4E4E2;
+    --it:#2C4A63;      /* indigo/slate - IT */
+    --it-soft:#E2EAF0;
+    --dh:#8A6A1E;       /* amber/gold - Đại học */
+    --dh-soft:#F2E9D3;
+    --ok:#4C7A57;
+    --half:#B8860A;
+    --shadow: 0 1px 2px rgba(43,40,35,0.06), 0 4px 14px rgba(43,40,35,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans','Noto Sans JP',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  .jp-text{font-family:'Noto Serif JP','Noto Sans JP',serif;}
+
+  header.top{
+    background:var(--ink);
+    color:var(--paper);
+    padding:22px 18px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"学";
+    font-family:'Noto Serif JP',serif;
+    position:absolute;
+    right:-10px; top:-30px;
+    font-size:160px;
+    opacity:0.06;
+    color:var(--paper);
+  }
+  header.top h1{
+    margin:0 0 4px;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  header.top p.sub{
+    margin:0;
+    font-size:13px;
+    opacity:0.7;
+  }
+
+  #authScreen{
+    max-width:380px;
+    margin:60px auto;
+    padding:0 20px;
+  }
+  #authScreen h2{font-size:18px;margin-bottom:4px;}
+  #authScreen p{color:var(--ink-soft);font-size:13.5px;margin-top:0;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:5px;}
+  .field input{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-size:15px;
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--it);outline-offset:1px;}
+  .btn{
+    display:inline-block;
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    font-size:14.5px;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+  }
+  .btn:active{opacity:0.85;}
+  .btn-link{
+    background:none;border:none;color:var(--it);
+    font-size:13px;cursor:pointer;padding:8px 0;text-decoration:underline;
+  }
+  .authErr{color:var(--jp);font-size:13px;margin-top:8px;min-height:16px;}
+
+  #app{display:none;}
+
+  .statusbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 18px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:var(--paper-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .statusbar button{
+    background:none;border:none;color:var(--it);font-size:12.5px;cursor:pointer;
+  }
+
+  .progressWrap{padding:16px 18px 4px;}
+  .progressTitle{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .progressTitle b{font-weight:700;}
+  .progressBar{height:8px;border-radius:5px;background:var(--paper-dim);overflow:hidden;border:1px solid var(--line);}
+  .progressFill{height:100%;background:var(--ok);transition:width .35s ease;}
+
+  .schedule{
+    margin:16px 18px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:var(--shadow);
+    font-size:13px;
+  }
+  .schedule h3{margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);font-weight:600;text-transform:none;}
+  .schedule-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);}
+  .schedule-row:last-child{border-bottom:none;}
+  .schedule-row span:first-child{font-weight:600;}
+  .schedule-row span:last-child{color:var(--ink-soft);text-align:right;}
+
+  .weekBlock{margin:18px 18px 0;}
+  .weekHeader{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:10px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .weekHeader .wt{font-size:14px;font-weight:700;}
+  .weekHeader .wg{font-size:11.5px;opacity:0.7;margin-top:2px;}
+  .weekHeader .chev{transition:transform .2s;font-size:13px;}
+  .weekHeader.open .chev{transform:rotate(180deg);}
+  .weekBody{display:none;padding-top:10px;}
+  .weekBody.open{display:block;}
+
+  .dayCard{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:10px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .dayHead{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;
+    cursor:pointer;
+  }
+  .dayHead .dn{font-size:13.5px;font-weight:700;}
+  .dayHead .dd{font-size:11.5px;color:var(--ink-soft);}
+  .dots{display:flex;gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
+  .dot.on-jp{background:var(--jp);}
+  .dot.on-it{background:var(--it);}
+  .dot.on-dh{background:var(--dh);}
+  .dot.half{opacity:0.45;}
+
+  .dayBody{display:none;border-top:1px solid var(--line);}
+  .dayBody.open{display:block;}
+
+  .subj{
+    padding:12px 14px;
+    border-bottom:1px solid var(--paper-dim);
+  }
+  .subj:last-child{border-bottom:none;}
+  .subjHead{display:flex;align-items:center;gap:10px;}
+  .statusBtn{
+    flex-shrink:0;
+    width:26px;height:26px;
+    border-radius:7px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .statusBtn.state-full{background:var(--ok);border-color:var(--ok);color:#fff;}
+  .statusBtn.state-half{background:var(--half);border-color:var(--half);color:#fff;}
+  .subjLabel{font-size:13.5px;font-weight:600;flex:1;}
+  .subjLabel small{display:block;font-weight:400;color:var(--ink-soft);font-size:12px;margin-top:1px;}
+  .tag{font-size:10.5px;padding:2px 7px;border-radius:20px;font-weight:600;}
+  .tag.jp{background:var(--jp-soft);color:var(--jp);}
+  .tag.it{background:var(--it-soft);color:var(--it);}
+  .tag.dh{background:var(--dh-soft);color:var(--dh);}
+  .content{
+    margin-top:9px;
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--ink);
+    padding-left:36px;
+  }
+  .content ul{margin:6px 0;padding-left:18px;}
+  .content li{margin-bottom:3px;}
+  .content .ex{
+    background:var(--paper-dim);
+    border-left:3px solid var(--line);
+    padding:6px 10px;
+    margin:6px 0;
+    border-radius:4px;
+    font-size:13px;
+  }
+  .content code{
+    background:var(--paper-dim);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:12.5px;
+  }
+  .content .prac{
+    margin-top:8px;
+    padding:8px 10px;
+    border:1.5px dashed var(--line);
+    border-radius:6px;
+    background:#fff;
+    font-size:13px;
+  }
+  .content .prac b{display:block;margin-bottom:3px;font-size:12px;letter-spacing:0.2px;}
+  .subj:nth-child(1) .prac b, .content .prac.jp b{color:var(--jp);}
+  .content .prac.it b{color:var(--it);}
+  .content .prac.dh b{color:var(--dh);}
+
+  footer.legend{
+    margin:22px 18px 0;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    display:flex;gap:14px;flex-wrap:wrap;
+  }
+  footer.legend span{display:flex;align-items:center;gap:5px;}
+  footer.legend .sw{width:12px;height:12px;border-radius:4px;border:1.5px solid var(--line);}
+  footer.legend .sw.full{background:var(--ok);border-color:var(--ok);}
+  footer.legend .sw.half{background:var(--half);border-color:var(--half);}
+
+  .syncNote{margin:22px 18px 30px;font-size:11.5px;color:var(--ink-soft);text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Lịch Học Tháng 1</h1>
+  <p class="sub">Tiếng Nhật · Đại học CNTT · IT thực hành — hướng tới IT Support / 社内SE</p>
+</header>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <h2 id="authTitle">Đăng nhập</h2>
+  <p id="authSub">Đăng nhập để tiến độ học đồng bộ trên mọi thiết bị.</p>
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="authEmail" autocomplete="email">
+  </div>
+  <div class="field">
+    <label>Mật khẩu</label>
+    <input type="password" id="authPass" autocomplete="current-password">
+  </div>
+  <button class="btn" id="authSubmit">Đăng nhập</button>
+  <div style="text-align:center;">
+    <button class="btn-link" id="authToggle">Chưa có tài khoản? Tạo tài khoản mới</button>
+  </div>
+  <div class="authErr" id="authErr"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="statusbar">
+    <span id="userEmail"></span>
+    <button id="logoutBtn">Đăng xuất</button>
+  </div>
+
+  <div class="progressWrap">
+    <div class="progressTitle"><span>Tiến độ Tháng 1</span><b id="progressPct">0%</b></div>
+    <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="schedule">
+    <h3>⏱ Lịch cố định hằng tuần</h3>
+    <div class="schedule-row"><span>Thứ 2 – Thứ 5</span><span>17:00 Nhật · 18:00 IT/ĐH</span></div>
+    <div class="schedule-row"><span>Thứ 6</span><span>17:00 Nhật, sau đó nghỉ</span></div>
+    <div class="schedule-row"><span>Thứ 7</span><span>09:00 IT · 14:00 ĐH · 20:00 Nhật (ôn)</span></div>
+    <div class="schedule-row"><span>Chủ nhật</span><span>09:00 Nhật · 10:15 ĐH</span></div>
+  </div>
+
+  <div id="weeksContainer"></div>
+
+  <footer class="legend">
+    <span><i class="sw full"></i> Đã học đủ</span>
+    <span><i class="sw half"></i> Học một phần</span>
+    <span><i class="sw"></i> Chưa học</span>
+  </footer>
+  <p class="syncNote">Bấm vào ô vuông để đổi trạng thái · Bấm vào từng dòng để xem nội dung bài học</p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnvpsjVl9O-9569AU4AsCAh9qDCCty0S8",
+  authDomain: "lich-hoc-tieng-nhat-va-it.firebaseapp.com",
+  projectId: "lich-hoc-tieng-nhat-va-it",
+  storageBucket: "lich-hoc-tieng-nhat-va-it.firebasestorage.app",
+  messagingSenderId: "927651197581",
+  appId: "1:927651197581:web:4c00d6d1b3a8ead82de8c4"
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+/* ============ NỘI DUNG BÀI HỌC ============ */
+const WEEKS = [
+{
+  title: "Tuần 1 — Nền tảng (IRODORI Nhập Môn, Bài 1–3)",
+  goal: "Chào hỏi, xin nhắc lại, tự giới thiệu (です) + Phần cứng máy tính + CNTT là gì",
+  days: [
+    { d:"Thứ 2", date:"Ngày 01",
+      jp:{t:"Bài 1: おはようございます — Chào hỏi + Hiragana/Katakana", h:`
+      <p><b>Bối cảnh Bài 1 (IRODORI Nhập Môn):</b> học cách chào hỏi khi gặp mặt, khi chia tay, và khi cảm ơn/xin lỗi — tình huống đầu tiên ai học tiếng Nhật cũng gặp.</p>
+      <ul>
+        <li><b>こんにちは</b> — Xin chào (ban ngày). <b>おはようございます</b> — Chào buổi sáng. <b>こんばんは</b> — Chào buổi tối.</li>
+        <li><b>お先に失礼します</b> (おさきに しつれいします) — "Tôi xin phép về trước" — câu chào khi rời công ty trước đồng nghiệp, rất hay dùng ở Nhật.</li>
+        <li><b>ありがとうございます</b> — Cảm ơn. <b>すみません</b> — Xin lỗi / Xin phép (cũng dùng để gọi người khác).</li>
+      </ul>
+      <p><b>Bảng chữ cái:</b> Hiragana dùng cho từ thuần Nhật &amp; ngữ pháp, Katakana dùng cho từ mượn nước ngoài.</p>
+      <ul>
+        <li><b>Âm dài (長音)</b>: nguyên âm kéo dài gấp đôi — おかあさん (mẹ). Đọc ngắn thành おかさん là sai nghĩa.</li>
+        <li><b>Âm ghép (拗音)</b>: chữ nhỏ ゃゅょ sau âm hàng i — きょう (hôm nay), しゅくだい.</li>
+        <li><b>Âm ngắt (促音)</b>: chữ っ nhỏ, ngừng một nhịp — がっこう (trường học).</li>
+      </ul>
+      <div class="ex">Luyện đọc: がっこう / きょう / おかあさん</div>
+      <div class="prac jp"><b>📝 Thực hành 1 — Viết</b>Viết tay bảng Hiragana あ→こ (10 chữ đầu), đọc to mỗi chữ 3 lần.</div>
+      <div class="prac jp"><b>📝 Thực hành 2 — Nói</b>Đóng vai 2 tình huống: (1) gặp đồng nghiệp buổi sáng, (2) rời công ty trước giờ — nói to こんにちは / お先に失礼します như thật.</div>
+      <div class="prac jp"><b>📝 Thực hành 3 — Nghe lại</b>Thu âm giọng mình đọc がっこう/きょう/おかあさん, nghe lại và tự chấm xem âm dài/âm ngắt/âm ghép đã rõ chưa.</div>`},
+      it:{t:"CPU, RAM, SSD, các linh kiện chính", h:`
+      <ul>
+        <li><b>CPU</b> — bộ não xử lý mọi phép tính và lệnh. Tốc độ tính bằng GHz (xung nhịp) và số nhân (core) — càng nhiều nhân, máy càng xử lý được nhiều việc cùng lúc.</li>
+        <li><b>RAM</b> — bộ nhớ tạm, mất điện là mất dữ liệu. RAM 8GB đủ dùng văn phòng, 16GB trở lên mới thoải mái mở nhiều ứng dụng nặng cùng lúc.</li>
+        <li><b>SSD/HDD</b> — lưu trữ lâu dài; SSD nhanh hơn HDD gấp nhiều lần vì không có đĩa quay cơ học. SSD dùng chuẩn NVMe còn nhanh hơn SSD SATA thường.</li>
+        <li><b>Mainboard</b> — kết nối mọi linh kiện. <b>GPU</b> — xử lý đồ họa. <b>PSU</b> — cấp điện, công suất tính bằng Watt.</li>
+        <li><b>BIOS/UEFI</b> — phần mềm khởi động đầu tiên khi bật máy, trước cả khi Windows chạy; UEFI là bản hiện đại thay thế BIOS cũ, hỗ trợ ổ cứng dung lượng lớn và khởi động nhanh hơn.</li>
+      </ul>
+      <div class="prac it"><b>📝 Thực hành 1</b>Mở Settings → System → About. Ghi ra giấy: tên CPU, dung lượng RAM, loại ổ đĩa (Settings → System → Storage xem ổ là SSD hay HDD).</div>
+      <div class="prac it"><b>📝 Thực hành 2</b>Tính thử: nếu máy có RAM 8GB, mở Chrome (~1.5GB) + Word (~0.5GB) + 1 phần mềm kế toán (~1GB), còn lại bao nhiêu GB RAM trống? Việc này giải thích vì sao máy có lúc bị giật/lag.</div>`},
+      dh:{t:"CNTT là gì?", h:`
+      <p>Công nghệ thông tin (CNTT/IT) là ngành dùng máy tính, phần mềm và mạng lưới để thu thập, xử lý, lưu trữ và truyền tải thông tin. 5 lĩnh vực chính thường được nhắc tới:</p>
+      <ul>
+        <li><b>Programming (Lập trình)</b> — viết code tạo ra phần mềm, ứng dụng, website.</li>
+        <li><b>Database (Cơ sở dữ liệu)</b> — tổ chức và lưu trữ dữ liệu có cấu trúc (bảng, hàng, cột).</li>
+        <li><b>Network (Mạng máy tính)</b> — kết nối các thiết bị để trao đổi dữ liệu.</li>
+        <li><b>Operating System (Hệ điều hành)</b> — phần mềm quản lý phần cứng và điều phối chương trình.</li>
+        <li><b>Information Security (An ninh mạng)</b> — bảo vệ hệ thống và dữ liệu khỏi tấn công, rò rỉ.</li>
+      </ul>
+      <div class="prac dh"><b>📝 Thực hành 1</b>Viết ra giấy 5 lĩnh vực trên, mỗi lĩnh vực tự nghĩ 1 ví dụ thực tế (vd: ngân hàng dùng Database để lưu số dư tài khoản).</div>
+      <div class="prac dh"><b>📝 Thực hành 2</b>Trong công việc payroll/kế toán anh đang làm, thử chỉ ra nó liên quan tới lĩnh vực CNTT nào nhất trong 5 lĩnh vực trên, và vì sao.</div>`} },
+    { d:"Thứ 3", date:"Ngày 02",
+      jp:{t:"Bài 2: すみません、よくわかりません — Xin nhắc lại + Katakana", h:`
+      <p><b>Bối cảnh Bài 2:</b> khi không nghe rõ hoặc không hiểu tiếng Nhật, cần biết cách xin nhắc lại và hỏi xem người khác có nói được ngôn ngữ khác không.</p>
+      <ul>
+        <li><b>もういちど、お願いします</b> — "Xin nói lại một lần nữa."</li>
+        <li><b>日本語、できますか？</b> — "Bạn nói được tiếng Nhật không?" (hỏi ngược lại về khả năng ngôn ngữ)</li>
+        <li><b>これは日本語で何と言いますか？</b> — "Cái này tiếng Nhật gọi là gì?"</li>
+      </ul>
+      <p>Katakana dùng cho từ mượn nước ngoài, vd: コーヒー (cà phê), パソコン (máy tính), メッセージ (tin nhắn).</p>
+      <div class="prac jp"><b>📝 Thực hành 1 — Viết</b>Viết tay bảng Katakana ア→コ (10 chữ đầu), đối chiếu hình dạng với Hiragana tương ứng đã học hôm qua.</div>
+      <div class="prac jp"><b>📝 Thực hành 2 — Nói</b>Tình huống: đồng nghiệp người Nhật nói nhanh anh không kịp hiểu — tập nói もういちど、お願いします thật tự nhiên, không ngại ngùng.</div>
+      <div class="prac jp"><b>📝 Thực hành 3 — Từ vựng</b>Tìm 5 từ Katakana quen thuộc quanh anh (đồ vật, tên thương hiệu) và viết ra bằng Katakana.</div>`},
+      it:{t:"Kiểm tra thông số máy", h:`<p>Windows → <code>Settings → System → About</code>. Ghi lại: CPU, RAM, Windows version, System type (32-bit/64-bit). Thông tin này quan trọng khi cài phần mềm — nhiều phần mềm ghi rõ yêu cầu tối thiểu (vd "cần RAM 8GB, Windows 10 64-bit trở lên").</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Chụp màn hình trang About của máy anh, khoanh tròn 4 thông số: CPU, RAM, Windows version, System type.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tìm yêu cầu hệ thống (system requirements) của 1 phần mềm anh hay dùng (vd Excel, phần mềm kế toán) và so sánh với thông số máy anh — máy có đáp ứng đủ không?</div>`},
+      dh:{t:"Phần cứng máy tính (ôn)", h:`<p>Liên hệ lại các linh kiện đã học hôm qua với vai trò của chúng trong một hệ thống hoàn chỉnh: CPU tính toán → RAM lưu tạm dữ liệu đang xử lý → SSD/HDD lưu lâu dài → Mainboard kết nối tất cả → PSU cấp điện cho toàn bộ.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Không nhìn bài cũ, tự vẽ sơ đồ: CPU – RAM – SSD – Mainboard – GPU – PSU, nối mũi tên thể hiện chúng liên kết với nhau như thế nào.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Giải thích bằng lời (nói to hoặc viết): "Khi bấm nút nguồn, máy tính khởi động theo thứ tự nào?" (gợi ý: PSU cấp điện → BIOS/UEFI chạy → tìm ổ đĩa có hệ điều hành → nạp Windows).</div>`} },
+    { d:"Thứ 4", date:"Ngày 03",
+      jp:{t:"Bài 3 (phần 1): よろしくお願いします — です / N1はN2です", h:`
+      <p><b>Bối cảnh Bài 3:</b> tự giới thiệu bản thân lần đầu gặp mặt — nói tên, quốc tịch, nơi đến.</p>
+      <ul>
+        <li><b>➊ Nです</b> — "là N". Vd: <span class="jp-text">トンです。</span> (Tôi là Tôn.)</li>
+        <li><b>➊ N1は N2です</b> — "N1 là N2". Vd: <span class="jp-text">私はマルシアです。</span> (Tôi là Marcia.)</li>
+        <li><b>➏ Nじゃないです</b> — dạng phủ định thân mật. Vd: <span class="jp-text">ベトナムじゃないです。</span> (Không phải Việt Nam.)</li>
+      </ul>
+      <div class="ex">わたしは ベトナムじんです。(Tôi là người Việt Nam.)</div>
+      <div class="prac jp"><b>📝 Thực hành 1 — Viết</b>Viết 3 câu theo mẫu [tên]は[quốc tịch]じんです — dùng tên anh, một đồng nghiệp, một người thân.</div>
+      <div class="prac jp"><b>📝 Thực hành 2 — Chuyển câu</b>Chuyển 1 trong 3 câu trên sang dạng phủ định じゃないです.</div>
+      <div class="prac jp"><b>📝 Thực hành 3 — Đóng vai</b>Tưởng tượng gặp một người Nhật lần đầu, tự giới thiệu tên + quốc tịch bằng です, nói to 3 lần cho trôi chảy.</div>`},
+      it:{t:"Windows cơ bản", h:`<p>Làm quen giao diện Windows: <b>Start Menu</b> (mở chương trình), <b>Taskbar</b> (thanh tác vụ hiện app đang chạy), <b>File Explorer</b> (quản lý file/thư mục), <b>Control Panel/Settings</b> (cấu hình hệ thống).</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở lần lượt Start Menu, File Explorer, Control Panel trên máy anh, ghi lại 1 dòng mô tả mỗi cái dùng để làm gì.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Dùng phím tắt: thử <code>Windows+E</code> (mở File Explorer) và <code>Windows+I</code> (mở Settings) thay vì bấm chuột — ghi lại phím tắt nào anh thấy tiện hơn.</div>`},
+      dh:{t:"Hệ điều hành", h:`<p>Hệ điều hành (OS) là phần mềm quản lý toàn bộ phần cứng và điều phối các chương trình chạy trên máy. Ví dụ: Windows, macOS, Linux (máy chủ/server hay dùng Linux vì nhẹ và ổn định).</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Kiểm tra xem điện thoại và máy tính anh đang dùng chạy hệ điều hành gì (vd Android/iOS trên điện thoại, Windows trên PC), ghi lại phiên bản.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Liệt kê 3 việc hệ điều hành đang âm thầm làm ngay lúc anh đọc bài này (vd: quản lý pin, cấp RAM cho trình duyệt, chạy Wifi).</div>`} },
+    { d:"Thứ 5", date:"Ngày 04",
+      jp:{t:"Bài 3 (phần 2): 場所から来ました / Nは？ / Sか / Nも", h:`
+      <ul>
+        <li><b>➋【場所】から来ました</b> — "Đến từ [nơi]". Vd: <span class="jp-text">ブラジルから来ました。</span> (Tôi đến từ Brazil.)</li>
+        <li><b>➌ Nは？</b> — hỏi ngắn gọn. Vd: <span class="jp-text">お名前は？</span> (Tên bạn là gì?)</li>
+        <li><b>➍ Sか？</b> — câu hỏi lịch sự. Vd: <span class="jp-text">みなさんは、友だちですか？</span> (Mọi người là bạn bè à?)</li>
+        <li><b>➎ Nも</b> — "cũng". Vd: <span class="jp-text">ケマラさんも、ベトナムからですか？</span> (Anh Kemala cũng đến từ Việt Nam à?)</li>
+        <li>Kanji Bài 3: 名前 (tên), 国 (nước/quốc gia), 私 (tôi).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 1 câu dùng から来ました nói anh đến từ đâu (thành phố/quê quán), 1 câu dùng も nói một người bạn cũng đến từ nơi đó.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Tập đọc 3 chữ Kanji 名前・国・私, viết mỗi chữ 5 lần và ghép vào câu đã học (vd 私の名前は…です).</div>`},
+      it:{t:"Task Manager", h:`<p>Mở Task Manager (Ctrl+Shift+Esc), quan sát 4 tab: CPU, Memory, Disk, Network — hiểu máy đang "bận" ở đâu. Đây là công cụ đầu tiên cần mở khi máy chạy chậm hoặc treo.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở Task Manager, tìm và ghi lại: chương trình nào đang chiếm CPU nhiều nhất, chương trình nào chiếm RAM nhiều nhất tại thời điểm anh mở.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Thử tắt (End Task) một chương trình không cần thiết đang chạy nền, quan sát % CPU/RAM giảm xuống bao nhiêu.</div>`},
+      dh:{t:"Ôn CNTT tuần 1", h:`<p>Tổng hợp lại 5 lĩnh vực CNTT đã học: Programming, Database, Network, OS, Security.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết lại 5 lĩnh vực CNTT + ví dụ của mỗi lĩnh vực mà không nhìn bài cũ, sau đó so sánh với bài Thứ 2.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Chọn 1 lĩnh vực anh thấy hứng thú nhất trong 5 lĩnh vực, viết 2-3 câu giải thích vì sao.</div>`} },
+    { d:"Thứ 6", date:"Ngày 05",
+      jp:{t:"Ôn tập Bài 1–3", h:`<p>Ôn lại toàn bộ Bài 1 (chào hỏi), Bài 2 (xin nhắc lại), Bài 3 (です, から来ました, は/か/も, じゃないです).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Tự viết một đoạn ngắn 5-6 câu giới thiệu bản thân, dùng đủ: です, から来ました, も, ít nhất 1 câu hỏi với か.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Tự kiểm tra: che phần nghĩa tiếng Việt của 3 ví dụ đã học, chỉ nhìn câu tiếng Nhật và tự dịch lại.</div>`},
+      it:{t:"—", h:`<p>Nghỉ theo lịch cố định (chỉ học Nhật thứ 6).</p>`},
+      dh:{t:"—", h:`<p>Nghỉ theo lịch cố định.</p>`} },
+    { d:"Thứ 7", date:"Ngày 06",
+      jp:{t:"Nghe 30 phút (Bài 1–3)", h:`<p>Nghe hội thoại N5 cơ bản theo đúng chủ đề Bài 1-3: chào hỏi, xin nhắc lại, tự giới thiệu — không cần hiểu 100%, tập làm quen ngữ điệu thật.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Nghe 1 đoạn hội thoại chào hỏi/tự giới thiệu, viết lại 3 từ/cụm từ anh nghe rõ nhất.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Nghe lại lần 2, lần này thử đoán nghĩa toàn câu dựa vào các từ đã nhận ra, không tra từ điển trước.</div>`},
+      it:{t:"Device Manager", h:`<p>Mở Device Manager, xem danh sách driver/thiết bị đang kết nối với máy — driver là phần mềm giúp hệ điều hành "nói chuyện" được với phần cứng.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở Device Manager, liệt kê ra 5 loại thiết bị anh thấy trong danh sách (vd: Display adapters, Keyboards...).</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tìm xem có thiết bị nào bị đánh dấu cảnh báo (dấu chấm than vàng) không — nếu có, đó là dấu hiệu driver bị lỗi/thiếu.</div>`},
+      dh:{t:"5 lĩnh vực CNTT", h:`<p>Đọc kỹ hơn: Programming (viết phần mềm), Database (lưu trữ dữ liệu có cấu trúc), Network (kết nối máy tính), OS (quản lý hệ thống), Security (bảo vệ dữ liệu).</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Với mỗi lĩnh vực, viết 1 câu trả lời: "Nếu tôi giỏi lĩnh vực này, tôi có thể làm công việc gì?"</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Tra thử 1 vị trí công việc IT Support/社内SE trên mạng, xem JD (mô tả công việc) nhắc tới lĩnh vực nào trong 5 lĩnh vực trên nhiều nhất.</div>`} },
+    { d:"Chủ nhật", date:"Ngày 07",
+      jp:{t:"Kiểm tra: Tự giới thiệu bản thân", h:`<p>Tự nói khoảng 10 câu: tên, quốc tịch, nơi đến, công việc — dùng です/から来ました/は/も/じゃないです đã học trong Bài 1-3.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Nói to (hoặc thu âm) đoạn tự giới thiệu 10 câu, không nhìn giấy ở câu cuối cùng.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Nghe lại bản thu âm của chính mình, tự chấm điểm phát âm và ngữ pháp trên thang 5, ghi chú điểm cần cải thiện tuần sau.</div>`},
+      it:{t:"Ôn Windows", h:`<p>Ôn lại Settings, Task Manager, Device Manager — 3 công cụ nền tảng để tự kiểm tra máy tính.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Không mở máy, tự liệt kê trên giấy: Settings dùng để làm gì, Task Manager dùng để làm gì, Device Manager dùng để làm gì. Sau đó mở máy kiểm tra lại.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tự đặt 1 tình huống giả định (vd "máy chạy chậm") và nói ra anh sẽ mở công cụ nào trước để kiểm tra.</div>`},
+      dh:{t:"Ôn tuần 1", h:`<p>Tổng ôn kiến thức CNTT tuần 1: 5 lĩnh vực + phần cứng máy tính.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Tự làm bài kiểm tra nhỏ: viết 5 lĩnh vực CNTT + tên 1 linh kiện phần cứng liên quan nếu có.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết 3-5 câu tổng kết bằng lời của anh: "Tuần này tôi đã học được gì về CNTT?"</div>`} },
+  ]
+},
+{
+  title: "Tuần 2 — Windows (IRODORI Nhập Môn, Bài 4–6)",
+  goal: "Gia đình/nơi ở, sở thích ăn uống, gọi món (です mở rộng) + File/Folder + Thuật toán cơ bản",
+  days: [
+    { d:"Thứ 2", date:"Ngày 08",
+      jp:{t:"Bài 4 (phần 1): 東京に住んでいます — N1とN2 / 何歳ですか", h:`
+      <p><b>Bối cảnh Bài 4:</b> giới thiệu gia đình, tuổi tác, nơi ở — chủ đề rất hay gặp khi làm quen với đồng nghiệp Nhật.</p>
+      <ul>
+        <li><b>➊ N1とN2</b> — "N1 và N2". Vd: <span class="jp-text">夫と子どもです。</span> (Là chồng tôi và con tôi.)</li>
+        <li><b>➋【疑問表現】ですか？</b> — mẫu câu hỏi. Vd: <span class="jp-text">何歳ですか？</span> (Bao nhiêu tuổi?)</li>
+        <li>Kanji Bài 4: 父 (bố), 母 (mẹ), 子ども (con), 日本 (Nhật Bản).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết câu giới thiệu 2 người thân bằng N1とN2 (vd: 父と母です).</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Tự hỏi-đáp: 何歳ですか？ rồi trả lời tuổi thật của anh bằng です.</div>
+      <div class="prac jp"><b>📝 Thực hành 3</b>Viết 4 chữ Kanji 父・母・子ども・日本 mỗi chữ 5 lần, đọc to khi viết.</div>`},
+      it:{t:"File, Folder, Path, Extension", h:`<p><b>File</b> = tệp tin. <b>Folder</b> = thư mục chứa file. <b>Path</b> = đường dẫn tới vị trí file, vd <code>C:\\Users\\TuanAnh\\Documents\\bang-luong.xlsx</code>. <b>Extension</b> = phần đuôi sau dấu chấm (.docx, .xlsx, .exe) — Windows dựa vào đuôi này để biết mở file bằng chương trình nào.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở File Explorer, tìm 1 file bất kỳ, bấm chuột phải → Properties, đọc và ghi lại Path đầy đủ và Extension của file đó.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Thử đổi đuôi (extension) của 1 file test từ .txt sang .pdf, quan sát Windows có mở được không và icon file thay đổi thế nào — sau đó đổi lại như cũ.</div>`},
+      dh:{t:"Algorithm — Thuật toán là gì?", h:`<p>Thuật toán = các bước giải quyết vấn đề theo thứ tự rõ ràng, hữu hạn, để đi từ Input (đầu vào) đến Output (đầu ra) chính xác.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết thuật toán (các bước) cho việc "pha một ly cà phê", đánh số từng bước rõ ràng như một quy trình máy tính có thể làm theo.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết thuật toán cho việc "tính lương một nhân viên" (input: giờ làm + lương/giờ, process: nhân lên, output: tổng lương) — liên hệ trực tiếp tới công việc payroll anh đang làm.</div>`} },
+    { d:"Thứ 3", date:"Ngày 09",
+      jp:{t:"Bài 4 (phần 2): 場所に住んでいます / N1のN2", h:`
+      <ul>
+        <li><b>➌【場所】に住んでいます</b> — "sống ở [nơi]". Vd: <span class="jp-text">家族は、フィリピンに住んでいます。</span> (Gia đình tôi sống ở Philippines.)</li>
+        <li><b>➍ N1のN2</b> — sở hữu, "N2 của N1". Vd: <span class="jp-text">私の母です。</span> (Là mẹ tôi.) <span class="jp-text">ペットのジョンです。</span> (Là John, thú cưng của tôi.)</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 2 câu dùng に住んでいます nói nơi anh và gia đình đang sống.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 3 câu dùng のN2 giới thiệu người thân (vd: 私の父です、私の母です).</div>`},
+      it:{t:"Tạo cấu trúc thư mục", h:`<div class="ex">IT-LAB/<br>├── Documents<br>├── Pictures<br>├── Backup<br>└── Test</div><p>Việc tổ chức thư mục rõ ràng là kỹ năng nền tảng của IT Support — giúp tìm file nhanh và tránh mất dữ liệu khi backup.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Trên máy anh, tạo đúng cấu trúc thư mục IT-LAB ở trên. Copy 1 file vào Documents, đổi tên nó, rồi xóa 1 file trong Test để luyện thao tác.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tạo 1 file .txt trong Backup, gõ vài dòng ghi chú, sau đó copy cả thư mục IT-LAB ra USB hoặc ổ đĩa khác để luyện thao tác "backup dữ liệu" cơ bản.</div>`},
+      dh:{t:"Input → Process → Output", h:`<div class="ex">Nhập tuổi → Kiểm tra tuổi ≥ 18? → Có: Người lớn / Không: Chưa đủ tuổi</div>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết Input→Process→Output cho bài toán khác: "kiểm tra một số là chẵn hay lẻ".</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết Input→Process→Output cho "kiểm tra nhân viên có đi làm đủ ngày công trong tháng không" (input: số ngày làm thực tế + số ngày công chuẩn, output: đủ/thiếu).</div>`} },
+    { d:"Thứ 4", date:"Ngày 10",
+      jp:{t:"Bài 5 (phần 1): うどんが好きです — Nが好きです / はちょっと…", h:`
+      <ul>
+        <li><b>➊ Nが好きです / Nは好きじゃないです</b> — "thích N" / "không thích N". Vd: <span class="jp-text">肉と野菜が好きです。</span> (Tôi thích thịt và rau.) <span class="jp-text">魚は好きじゃないです。</span> (Tôi không thích cá.)</li>
+        <li><b>➋ Nはちょっと…</b> — cách từ chối khéo, để lửng câu. Vd: <span class="jp-text">わさびは、ちょっと…。</span> (Wasabi thì... hơi khó ăn.)</li>
+        <li>Kanji Bài 5: 水 (nước), 食べます (ăn), 飲みます (uống).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 3 câu nói món ăn anh thích/không thích bằng が好きです / は好きじゃないです.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Tập nói câu từ chối khéo bằng はちょっと… với 1 món anh không thích, không nói thẳng "ghét".</div>`},
+      it:{t:"User Account", h:`<p>Tài khoản người dùng (User Account) trên Windows — mỗi account có dữ liệu, cài đặt và quyền riêng. Hai loại chính: <b>Administrator</b> (toàn quyền) và <b>Standard</b> (quyền hạn chế, không tự cài phần mềm/đổi cài đặt hệ thống được).</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Vào Settings → Accounts, xem tài khoản hiện tại của anh là loại gì (Administrator hay Standard).</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Nếu có quyền, thử tạo 1 tài khoản Standard mới (Settings → Accounts → Family & other users) để hiểu sự khác biệt về quyền hạn so với Administrator.</div>`},
+      dh:{t:"Python: print()", h:`<div class="ex">print("Hello World")</div><p><code>print()</code> là lệnh in ra màn hình — lệnh đầu tiên hầu như ai học lập trình cũng gõ.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Dùng công cụ chạy Python online (vd replit.com hoặc programiz.com/python/online-compiler), gõ và chạy: print("Xin chào Tuấn Anh").</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Thử in 3 dòng liên tiếp bằng 3 lệnh print() khác nhau (vd tên, tuổi, công việc), quan sát mỗi print() tự xuống dòng.</div>`} },
+    { d:"Thứ 5", date:"Ngày 11",
+      jp:{t:"Bài 5 (phần 2): V-ますか / Nを V-ます / V-ません", h:`
+      <ul>
+        <li><b>➌ V-ますか？ (thể マス)</b> — Vd: <span class="jp-text">お茶、飲みますか？</span> (Uống trà không?)</li>
+        <li><b>➍ Nを V-ます</b> — "làm gì với N". Vd: <span class="jp-text">シリアルを食べます。</span> (Tôi ăn ngũ cốc.)</li>
+        <li><b>➎ (Nは)V-ません / V-ないです</b> — phủ định. Vd: <span class="jp-text">私は、朝ご飯は、あまり食べません。</span> (Tôi ít khi ăn sáng.)</li>
+        <li><b>➏ Tần suất</b>: いつも/よく V-ます, あまり V-ません (hầu như không).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 3 câu mô tả bữa sáng của anh dùng を食べます/を飲みます.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 1 câu dùng あまり…ません nói về việc anh ít khi làm (vd: ăn đồ cay, uống cà phê).</div>`},
+      it:{t:"Administrator", h:`<p>Tài khoản Administrator có quyền cài đặt phần mềm, thay đổi hệ thống, sửa file hệ thống quan trọng — cần cẩn trọng khi dùng vì thao tác sai có thể ảnh hưởng toàn máy.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Thử mở một Settings cần quyền admin (vd thêm user mới trong Settings → Accounts → Family & other users), quan sát Windows có hỏi xác nhận quyền không.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tìm hiểu UAC (User Account Control) — hộp thoại "Do you want to allow this app..." hay hiện lên — giải thích 1 câu vì sao Windows lại hỏi xác nhận này.</div>`},
+      dh:{t:"Python: variable", h:`<div class="ex">name = "Tuấn Anh"<br>age = 25</div><p>Biến (variable) là nơi lưu trữ dữ liệu tạm thời trong chương trình để dùng lại sau.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết đoạn code tạo 3 biến: tên, tuổi, thành phố của anh, rồi dùng print() để in cả 3 ra.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Thử đổi giá trị 1 biến sau khi đã print() ra 1 lần, print() lại lần 2 để thấy giá trị đã thay đổi — hiểu bản chất biến "có thể thay đổi".</div>`} },
+    { d:"Thứ 6", date:"Ngày 12",
+      jp:{t:"Ôn tập Bài 4–5", h:`<p>Ôn lại: N1とN2, 場所に住んでいます, N1のN2, Nが好きです, Nを V-ます, tần suất あまり…ません.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn 5-6 câu tổng hợp: giới thiệu gia đình + nơi sống + món ăn yêu thích, dùng đủ ngữ pháp Bài 4-5.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Tự kiểm tra: che nghĩa tiếng Việt, chỉ nhìn 5 câu ví dụ tiếng Nhật trong tuần và tự dịch lại.</div>`},
+      it:{t:"—", h:`<p>Nghỉ.</p>`}, dh:{t:"—", h:`<p>Nghỉ.</p>`} },
+    { d:"Thứ 7", date:"Ngày 13",
+      jp:{t:"Bài 6 (phần 1): チーズバーガーください — N、お願いします/ください", h:`
+      <p><b>Bối cảnh Bài 6:</b> gọi món ở cửa hàng đồ ăn nhanh/quán ăn — kỹ năng rất thực tế khi sống ở Nhật.</p>
+      <ul>
+        <li><b>➊ N、お願いします</b> / <b>N、ください</b> — "Cho tôi N". Vd: <span class="jp-text">ホットコーヒー、お願いします。</span> <span class="jp-text">これ、ください。</span></li>
+        <li>Kanji Bài 6: 魚 (cá), 肉 (thịt), 好き（な） (thích).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Đóng vai gọi món tại quán: nói 3 câu gọi 3 món khác nhau bằng お願いします/ください.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 3 chữ Kanji 魚・肉・好き mỗi chữ 5 lần.</div>`},
+      it:{t:"Event Viewer", h:`<p>Công cụ xem log lỗi hệ thống (Windows Logs → Application/System) — bước đầu để chẩn đoán sự cố Windows khi máy bị crash hoặc lỗi lạ.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở Event Viewer → Windows Logs → System, tìm 1 sự kiện loại "Warning" hoặc "Error" gần nhất, ghi lại thời gian và mô tả ngắn của nó.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Lọc log theo "Error" only (Filter Current Log), đếm xem trong 7 ngày gần nhất máy anh có bao nhiêu lỗi được ghi nhận.</div>`},
+      dh:{t:"Python: input()", h:`<div class="ex">name = input("Nhập tên: ")<br>print("Xin chào " + name)</div><p><code>input()</code> cho phép chương trình nhận dữ liệu từ người dùng khi đang chạy.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy đoạn code trên, thử nhập tên thật của anh và xem kết quả in ra.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết thêm 1 dòng input() nữa hỏi tuổi, in ra câu đầy đủ "Xin chào [tên], bạn [tuổi] tuổi."</div>`} },
+    { d:"Chủ nhật", date:"Ngày 14",
+      jp:{t:"Bài 6 (phần 2): Nにします / N、ありますか？ + Ôn tuần", h:`
+      <ul>
+        <li><b>➋ Nにします</b> — "chọn N". Vd: <span class="jp-text">私は、うどんにします。</span> (Tôi chọn món udon.)</li>
+        <li><b>➍ N（は）ありますか？</b> — hỏi có món/đồ gì không. Vd: <span class="jp-text">マヨネーズ、ありますか？</span> (Có mayonnaise không?)</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn hội thoại ngắn 4 câu ở quán ăn: hỏi có món gì, chọn món bằng にします, gọi món bằng ください.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết đoạn 6-7 câu tổng kết cả tuần: gia đình (Bài4) + sở thích ăn uống (Bài5) + gọi món (Bài6).</div>`},
+      it:{t:"Ôn Windows tuần 2", h:`<p>Ôn File/Folder/Path/Extension, User Account, Event Viewer.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Tự đặt và trả lời câu hỏi: "Nếu máy tính chạy chậm bất thường, mình sẽ mở công cụ nào trước để kiểm tra?"</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Ôn lại toàn bộ thao tác đã làm trong tuần (tạo folder, đổi extension, tạo user, xem Event Viewer) — viết ra thành 1 checklist ngắn cho bản thân.</div>`},
+      dh:{t:"Ôn Python cơ bản", h:`<p>Ôn print(), variable, input().</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết chương trình nhỏ: hỏi tên và tuổi bằng input(), lưu vào biến, rồi in ra câu "Xin chào [tên], bạn [tuổi] tuổi."</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Mở rộng chương trình trên: thêm input() hỏi thành phố đang sống, in ra đủ 3 thông tin trong 1 câu.</div>`} },
+  ]
+},
+{
+  title: "Tuần 3 — Network (IRODORI Nhập Môn, Bài 7–9)",
+  goal: "あります/います, vị trí đồ vật/người, giờ giấc lịch làm việc + IP/DNS/Gateway + if/else",
+  days: [
+    { d:"Thứ 2", date:"Ngày 15",
+      jp:{t:"Bài 7 (phần 1): 部屋が4つあります — ここは場所です / 場所にNがあります", h:`
+      <p><b>Bối cảnh Bài 7:</b> mô tả nhà/phòng ở — giới thiệu các phòng, đồ vật có trong nhà.</p>
+      <ul>
+        <li><b>➊ ここは【場所】です</b> — "Đây là [nơi]". Vd: <span class="jp-text">ここは玄関です。</span> (Đây là lối vào.)</li>
+        <li><b>➋【場所】にNがあります / 【場所】にNが【số】あります</b> — "Ở [nơi] có N". Vd: <span class="jp-text">1階に部屋が4つあります。</span> (Tầng 1 có 4 phòng.)</li>
+        <li>Kanji Bài 7: 家 (nhà), 新しい (mới), 広い (rộng), 古い (cũ).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 3 câu mô tả các phòng trong nhà anh bằng ここは～です.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 2 câu nói phòng nào có đồ gì, số lượng bao nhiêu, dùng 場所にNが【số】あります.</div>`},
+      it:{t:"IP Address là gì?", h:`<p>Địa chỉ IP định danh một thiết bị trên mạng, dạng <code>192.168.1.1</code>. Mạng nội bộ (LAN) thường dùng dải 192.168.x.x hoặc 10.x.x.x, còn địa chỉ IP công cộng (Public IP) là địa chỉ nhà mạng cấp để ra Internet.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Vào Settings → Network & Internet → Wi-Fi → Properties, tìm và ghi lại địa chỉ IPv4 của máy anh.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Truy cập trang whatismyip.com để xem địa chỉ IP công cộng của mạng nhà/công ty anh — so sánh với IP nội bộ (LAN) vừa ghi, nhận xét chúng có giống nhau không và vì sao.</div>`},
+      dh:{t:"Boolean", h:`<p>Kiểu dữ liệu chỉ có 2 giá trị: True / False — nền tảng của mọi điều kiện logic trong lập trình. Mọi câu lệnh if/else đều dựa trên một biểu thức boolean (đúng hoặc sai).</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết code Python: is_raining = True, sau đó dùng if để in "Mang ô" nếu True, "Không cần ô" nếu False.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết 3 biểu thức so sánh trong Python (vd 5 > 3, 2 == 2, 10 < 1) và in kết quả True/False của từng biểu thức bằng print().</div>`} },
+    { d:"Thứ 3", date:"Ngày 16",
+      jp:{t:"Bài 7 (phần 2): Nはありません / ナA・イA tính từ", h:`
+      <ul>
+        <li><b>➌ Nはありません / Nはないです</b> — "Không có N". Vd: <span class="jp-text">トースターはありません。</span></li>
+        <li><b>➍ ナA-です / イA-いです</b> — tính từ đuôi な và đuôi い. Vd: <span class="jp-text">家は静かです。</span> (Nhà yên tĩnh.) <span class="jp-text">ちょっとせまいです。</span> (Hơi chật.)</li>
+        <li><b>➎ ナA-じゃないです / イA-くないです</b> — phủ định tính từ. Vd: <span class="jp-text">寮は広くないです。</span> (Ký túc xá không rộng.)</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 2 câu dùng tính từ đuôi い (vd 広い, 新しい) mô tả nhà/phòng của anh.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Chuyển 1 câu tính từ vừa viết sang dạng phủ định.</div>`},
+      it:{t:"ipconfig", h:`<p>Lệnh CMD xem địa chỉ IP, Subnet Mask, Default Gateway của máy — công cụ đầu tiên khi cần kiểm tra cấu hình mạng.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Mở CMD (gõ "cmd" ở Start Menu), chạy lệnh <code>ipconfig</code>, ghi lại 3 giá trị: IPv4 Address, Subnet Mask, Default Gateway.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Chạy <code>ipconfig /all</code> (có thêm /all), tìm thêm thông tin MAC Address (Physical Address) và DNS Servers — ghi lại 2 giá trị này.</div>`},
+      dh:{t:"If / Else", h:`<div class="ex">if age >= 18:<br>&nbsp;&nbsp;print("Adult")<br>else:<br>&nbsp;&nbsp;print("Minor")</div>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy đoạn code trên với 2 giá trị age khác nhau (vd 16 và 25) để thấy 2 kết quả khác nhau.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết if/else kiểm tra "số ngày công trong tháng ≥ 26 thì thưởng chuyên cần, ngược lại thì không" — liên hệ trực tiếp công việc payroll.</div>`} },
+    { d:"Thứ 4", date:"Ngày 17",
+      jp:{t:"Bài 8 (phần 1): 山田さんはどこにいますか？ — 場所でV-ます / 人は場所にいます", h:`
+      <p><b>Bối cảnh Bài 8:</b> hỏi vị trí đồng nghiệp và đồ vật tại nơi làm việc.</p>
+      <ul>
+        <li><b>➊【場所】でV-ます</b> — làm gì ở đâu. Vd: <span class="jp-text">ここで着替えます。</span> (Thay đồ ở đây.)</li>
+        <li><b>➋【人】は【場所】にいます</b> — người ở đâu. Vd: <span class="jp-text">山田さんは、食堂にいます。</span> (Anh Yamada đang ở căng-tin.)</li>
+        <li>Kanji Bài 8: 上 (trên), 下 (dưới), 中 (trong).</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 2 câu dùng 場所でV-ます mô tả anh làm gì ở công ty (vd họp ở đâu, ăn trưa ở đâu).</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 3 câu dùng 人は場所にいます nói vị trí hiện tại của 3 người quen (đồng nghiệp, người thân).</div>`},
+      it:{t:"ping", h:`<p><code>ping 8.8.8.8</code> — gửi gói tin kiểm tra kết nối tới một địa chỉ. Mất gói (timeout/Request timed out) nghĩa là không kết nối được tới đích đó.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Chạy <code>ping 8.8.8.8</code> trong CMD, đọc kết quả: có bao nhiêu gói gửi/nhận, thời gian phản hồi (ms) trung bình là bao nhiêu.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>So sánh ping tới 8.8.8.8 (Google DNS) và ping tới Gateway nội bộ — bên nào có thời gian phản hồi (ms) thấp hơn, giải thích ngắn gọn vì sao.</div>`},
+      dh:{t:"Bài Python đơn giản", h:`<p>Kết hợp input + if/else: nhập tuổi → in Adult/Minor — bài tập kinh điển để luyện tư duy điều kiện.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Tự viết hoàn chỉnh chương trình: age = int(input("Nhập tuổi: ")) rồi if/else in Adult/Minor, chạy thử với tuổi thật của anh.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Mở rộng: thêm điều kiện thứ 3 — nếu tuổi ≥ 65 thì in "Senior" thay vì "Adult" (dùng elif).</div>`} },
+    { d:"Thứ 5", date:"Ngày 18",
+      jp:{t:"Bài 8 (phần 2): 人はいません / ものはここ/そこ/あそこにあります", h:`
+      <ul>
+        <li><b>➌（人は）いません／いないです</b> — người không có ở đó. Vd: <span class="jp-text">辻さんは、いませんね。</span></li>
+        <li><b>➍【もの】は【ここ／そこ／あそこ】にあります</b> — Vd: <span class="jp-text">はさみは、そこにあります。</span> (Cái kéo ở đó.)</li>
+        <li><b>➎ Nの【位置】にあります</b> — vị trí chi tiết. Vd: <span class="jp-text">引き出しの中にあります。</span> (Ở trong ngăn kéo.)</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 2 câu nói một đồ vật đang ở đâu, dùng ここ/そこ/あそこにあります.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 2 câu dùng Nの位置にあります + kanji 上/下/中 (vd 机の上にあります、箱の中にあります).</div>`},
+      it:{t:"Gateway", h:`<p>Cổng nối giữa mạng nội bộ và Internet — mọi traffic ra ngoài đều đi qua Gateway trước. Nếu Gateway lỗi, thiết bị vẫn kết nối được với nhau trong mạng LAN nhưng không ra Internet được.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>So sánh Default Gateway anh ghi được hôm Thứ 3 với địa chỉ IP của máy — nhận xét chúng có cùng 3 số đầu không (vd 192.168.1.x).</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Ping thử vào Gateway của anh (vd <code>ping 192.168.1.1</code>) và ghi lại kết quả — đây chính là bước đầu tiên khi troubleshoot mạng thực tế.</div>`},
+      dh:{t:"Ôn Python", h:`<p>Ôn if/else + boolean.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết chương trình: nhập một số, in "Số dương" nếu &gt;0, "Số âm" nếu &lt;0, "Số 0" nếu =0 (dùng if/elif/else).</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Kết hợp boolean + if: viết is_weekend = True/False, rồi if/else in "Nghỉ" hoặc "Đi làm".</div>`} },
+    { d:"Thứ 6", date:"Ngày 19",
+      jp:{t:"Ôn tập Bài 7–8", h:`<p>Ôn lại: あります/います (đồ vật/người), tính từ ナA/イA, vị trí ここ/そこ/あそこ, Nの位置に.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn 6-7 câu mô tả nhà/phòng làm việc của anh: có gì, ở đâu, ai đang ở đó — dùng đủ ngữ pháp Bài 7-8.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Tự kiểm tra: nhìn 5 câu ví dụ tiếng Nhật trong tuần (không xem nghĩa), tự dịch lại sang tiếng Việt.</div>`},
+      it:{t:"—", h:`<p>Nghỉ.</p>`}, dh:{t:"—", h:`<p>Nghỉ.</p>`} },
+    { d:"Thứ 7", date:"Ngày 20",
+      jp:{t:"Bài 9 (phần 1): 12時から1時まで昼休みです — 時間にV-ます", h:`
+      <p><b>Bối cảnh Bài 9:</b> nói giờ giấc sinh hoạt, lịch làm việc hằng ngày.</p>
+      <ul>
+        <li><b>➊【時間】にV-ます / 【時間】ごろV-ます</b> — Vd: <span class="jp-text">5時に起きます。</span> (Dậy lúc 5 giờ.) <span class="jp-text">11時ごろ寝ます。</span> (Ngủ khoảng 11 giờ.)</li>
+        <li>Kanji Bài 9: 月火水木金土日 (các thứ trong tuần), ～曜日.</li>
+      </ul>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết 3 câu nói giờ dậy, giờ đi làm, giờ ngủ của anh bằng 時間にV-ます.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết 7 chữ 月火水木金土日 kèm cách đọc, ghép mỗi chữ vào câu "今日は～曜日です".</div>`},
+      it:{t:"DNS là gì?", h:`<p>Hệ thống dịch tên miền (google.com) thành địa chỉ IP để trình duyệt biết kết nối tới đâu — giống như "danh bạ điện thoại" của Internet.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Đoán xem tại sao khi Wi-Fi mất mạng, nhiều khi vẫn ping được IP (8.8.8.8) nhưng không mở được web — viết 1-2 câu giải thích theo hiểu biết của anh.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Vào Settings → Network → đổi DNS Server của máy sang 8.8.8.8 (Google DNS) hoặc 1.1.1.1 (Cloudflare) và thử lướt web — ghi lại tốc độ tải trang có khác gì không.</div>`},
+      dh:{t:"Bài tập Python", h:`<p>Mở rộng: nhập nhiệt độ → in nóng/bình thường/lạnh.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết chương trình: nhập nhiệt độ (°C), in "Nóng" nếu &gt;30, "Lạnh" nếu &lt;15, "Bình thường" nếu ở giữa.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Đổi bài toán trên thành phân loại điểm số: ≥8 "Giỏi", ≥6.5 "Khá", ≥5 "Trung bình", còn lại "Yếu".</div>`} },
+    { d:"Chủ nhật", date:"Ngày 21",
+      jp:{t:"Bài 9 (phần 2): 時間から時間まで / 日時がいいです + Ôn tuần", h:`
+      <ul>
+        <li><b>➋【時間】から【時間】まで</b> — "từ...đến...". Vd: <span class="jp-text">12時から1時まで、昼休みです。</span></li>
+        <li><b>➌【日時】がいいです</b> — chọn thời gian phù hợp. Vd: <span class="jp-text">私は、土曜日がいいです。</span> (Tôi thấy thứ 7 hợp.)</li>
+      </ul>
+      <div class="ex">6じに おきます。6じ20ぷんに しごとへ いきます。</div>
+      <div class="prac jp"><b>📝 Thực hành 1</b>Viết lịch trình 1 ngày làm việc thật của anh (6-8 câu) bằng tiếng Nhật, dùng động từ + giờ + から～まで.</div>
+      <div class="prac jp"><b>📝 Thực hành 2</b>Viết đoạn tổng kết cả tuần: nhà/phòng (Bài7) + vị trí người/đồ vật (Bài8) + giờ giấc (Bài9), khoảng 8 câu.</div>`},
+      it:{t:"nslookup", h:`<p><code>nslookup google.com</code> — tra ngược tên miền ra địa chỉ IP, dùng để kiểm tra DNS hoạt động đúng không.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Chạy <code>nslookup google.com</code> và <code>nslookup facebook.com</code> trong CMD, ghi lại địa chỉ IP trả về của mỗi trang.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Chạy nslookup với chính domain công ty (nếu có) hoặc 1 trang web Việt Nam quen thuộc, so sánh IP trả về với IP nước ngoài (google.com) — có gì khác biệt về vị trí server không.</div>`},
+      dh:{t:"Ôn tuần 3", h:`<p>Ôn IP/Gateway/DNS + if/else.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Vẽ sơ đồ đường đi của 1 request: Máy tính → Gateway → DNS → Internet, ghi chú vai trò từng bước.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết 1 chương trình Python tổng hợp: input() nhập điểm số, if/elif/else phân loại Giỏi/Khá/TB/Yếu, print() kết quả.</div>`} },
+  ]
+},
+{
+  title: "Tuần 4 — Tổng hợp (Ôn tập IRODORI Nhập Môn, Bài 1–9)",
+  goal: "Ôn toàn bộ Bài 1–9 + bài troubleshooting hoàn chỉnh + kiểm tra cuối tháng",
+  days: [
+    { d:"Thứ 2", date:"Ngày 22",
+      jp:{t:"Ôn Bài 1–3: Chào hỏi / Xin nhắc lại / Tự giới thiệu", h:`<p>Ôn lại: こんにちは/お先に失礼します/ありがとうございます (Bài 1), もういちどお願いします/日本語できますか (Bài 2), です/N1はN2です/から来ました/は・か・も/じゃないです (Bài 3).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết lại từ trí nhớ (không xem bài cũ) 3 câu chào hỏi + 1 câu xin nhắc lại + 3 câu tự giới thiệu.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Nói to đoạn hội thoại giả định: gặp người mới, chào hỏi, xin lỗi vì nghe không rõ, rồi tự giới thiệu — liền mạch không dừng.</div>`},
+      it:{t:"Computer (ôn)", h:`<p>Ôn CPU/RAM/SSD/Mainboard/GPU/PSU/BIOS-UEFI và vai trò từng linh kiện trong việc khởi động + vận hành máy.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Không nhìn bài cũ, tự vẽ lại sơ đồ linh kiện máy tính và vai trò từng cái, so sánh với bài Tuần 1.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tự đặt câu hỏi: "Nếu máy tính bật không lên màn hình, khả năng cao lỗi ở linh kiện nào trước?" và giải thích logic loại trừ (PSU → Mainboard → RAM → GPU).</div>`},
+      dh:{t:"IP + Gateway (ôn)", h:`<p>Ôn lại cách IP và Gateway hoạt động cùng nhau: thiết bị dùng IP để định danh, Gateway là cửa ngõ để dữ liệu đi ra khỏi mạng nội bộ.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy lại ipconfig, xác định IP và Gateway hiện tại, giải thích bằng lời tại sao chúng cùng dải mạng (3 số đầu giống nhau).</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Vẽ sơ đồ đơn giản: [Máy tính] — IP 192.168.1.x → [Gateway 192.168.1.1] → [Internet], ghi chú 1 dòng vai trò từng mắt xích.</div>`} },
+    { d:"Thứ 3", date:"Ngày 23",
+      jp:{t:"Ôn Bài 4–5: Gia đình / Sở thích ăn uống", h:`<p>Ôn lại: N1とN2/場所に住んでいます/N1のN2 (Bài 4), Nが好きです/を食べます/あまり…ません (Bài 5).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn 5 câu giới thiệu gia đình + nơi ở, không nhìn bài cũ.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Viết đoạn 5 câu nói sở thích ăn uống của anh và 1 người thân, dùng が好きです và は好きじゃないです.</div>`},
+      it:{t:"Operating System (ôn)", h:`<p>Ôn vai trò hệ điều hành: quản lý phần cứng, cấp phát tài nguyên (CPU/RAM) cho từng chương trình, quản lý file, chạy phần mềm.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Liệt kê 3 việc hệ điều hành làm mà anh không để ý hằng ngày (vd: quản lý file, cấp phát bộ nhớ cho từng app).</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Mở Task Manager, quan sát 5-10 process đang chạy dù anh không mở app nào — đây là các tiến trình hệ thống của OS, ghi lại tên 3 process bất kỳ.</div>`},
+      dh:{t:"DHCP", h:`<p>Giao thức tự động cấp IP cho thiết bị khi vào mạng, không cần cấu hình tay — router nhà thường đóng vai trò DHCP server, tự cấp IP cho điện thoại/laptop khi kết nối Wi-Fi.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Kiểm tra Settings Wi-Fi trên máy/điện thoại, xem IP đang được cấp "Automatic (DHCP)" hay "Manual".</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Thử tắt Wi-Fi rồi bật lại, chạy ipconfig xem địa chỉ IP có giữ nguyên hay đổi khác — đây là cách DHCP hoạt động (thuê IP có thời hạn).</div>`} },
+    { d:"Thứ 4", date:"Ngày 24",
+      jp:{t:"Ôn Bài 6–7: Gọi món / Mô tả nhà", h:`<p>Ôn lại: N、お願いします/ください/にします/ありますか (Bài 6), ここは場所です/場所にNがあります/ナA・イA (Bài 7).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn hội thoại 5 câu ở quán ăn: hỏi menu, chọn món, gọi món.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Viết đoạn 5 câu mô tả nhà/phòng của anh dùng tính từ ナA/イA (静か, 広い, 新しい...).</div>`},
+      it:{t:"Network (ôn)", h:`<p>Ôn IP/Gateway/DNS/DHCP — 4 khái niệm nền tảng để hiểu một thiết bị kết nối Internet như thế nào.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Tự vẽ sơ đồ 4 khái niệm IP/Gateway/DNS/DHCP và giải thích bằng lời mối quan hệ giữa chúng, không nhìn bài cũ.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Chạy lại đầy đủ 3 lệnh đã học: ipconfig, ping 8.8.8.8, nslookup google.com — ghi kết quả cả 3 vào 1 trang giấy như một "báo cáo kiểm tra mạng".</div>`},
+      dh:{t:"DNS (ôn)", h:`<p>Ôn cách phân giải tên miền: trình duyệt hỏi DNS server "địa chỉ IP của google.com là gì", DNS trả lời, sau đó trình duyệt mới kết nối được tới đúng server.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy nslookup với 2 trang web khác nhau, so sánh kết quả và giải thích lại bằng lời cách DNS hoạt động.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Giải thích tình huống: "ping 8.8.8.8 được nhưng ping google.com không được" — vấn đề nằm ở đâu? (gợi ý: DNS).</div>`} },
+    { d:"Thứ 5", date:"Ngày 25",
+      jp:{t:"Ôn Bài 8–9: Vị trí người/đồ vật / Giờ giấc", h:`<p>Ôn lại: 場所でV-ます/人は場所にいます/ものはここ・そこ・あそこにあります (Bài 8), 時間にV-ます/時間から時間まで (Bài 9).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết đoạn 5 câu mô tả vị trí đồ vật/người trong phòng làm việc của anh.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Viết lịch trình 1 ngày làm việc hoàn chỉnh (7-8 câu) dùng động từ + giờ + から～まで.</div>`},
+      it:{t:"Programming (ôn)", h:`<p>Ôn print/variable/input/if-else — 4 khối xây dựng cơ bản nhất của mọi chương trình.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Viết 1 chương trình Python hoàn chỉnh kết hợp cả 4: input tên + tuổi, if/else phân loại Adult/Minor, print kết quả.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Viết chương trình tính lương đơn giản: input số giờ làm + lương/giờ (biến), tính tổng (process), print kết quả (output) — bài toán thật anh đang làm hằng ngày.</div>`},
+      dh:{t:"Ping Gateway", h:`<p>Bước đầu tiên khi troubleshoot mạng: ping vào Gateway để xác nhận mạng nội bộ (LAN) hoạt động, trước khi nghi ngờ đến Internet.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy <code>ping [Gateway của anh]</code>, ghi lại kết quả (thành công/thất bại, thời gian phản hồi).</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Nếu ping Gateway thất bại, liệt kê 2-3 nguyên nhân khả dĩ (Wi-Fi chưa kết nối, cáp mạng lỏng, router lỗi).</div>`} },
+    { d:"Thứ 6", date:"Ngày 26",
+      jp:{t:"Ôn tổng hợp ngữ pháp Bài 1–9", h:`<p>Ôn toàn bộ ngữ pháp đã học: です hệ, あります/います hệ, tính từ ナA/イA, thời gian/vị trí.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Làm bài test tự soạn: viết 9 câu, mỗi câu đại diện 1 Bài (1 câu/Bài, từ Bài 1 đến Bài 9), không nhìn bài cũ.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Chấm lại 9 câu vừa viết, khoanh đỏ những chỗ còn sai/chưa chắc để tập trung ôn thêm cuối tuần.</div>`},
+      it:{t:"Database (giới thiệu)", h:`<p>Nơi lưu trữ dữ liệu có cấu trúc — bảng, hàng, cột. Ví dụ: MySQL, SQL Server, PostgreSQL. Mỗi bảng giống 1 file Excel: cột là loại thông tin, hàng là từng bản ghi.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Vẽ 1 bảng ví dụ (trên giấy) lưu thông tin nhân viên: cột Tên, Tuổi, Bộ phận — điền 3 dòng dữ liệu mẫu.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Liên hệ với công việc payroll: liệt kê các "cột" mà một bảng lương cần có (Tên NV, Giờ làm, Lương/giờ, Tổng lương...).</div>`},
+      dh:{t:"Ping Internet", h:`<p>Sau khi ping Gateway thành công, ping ra ngoài (vd 8.8.8.8) để xác nhận có Internet — bước thứ 2 trong quy trình troubleshoot mạng.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Chạy <code>ping 8.8.8.8</code> và so sánh thời gian phản hồi với ping Gateway hôm qua — cái nào nhanh hơn, vì sao?</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Thử ping một địa chỉ không tồn tại (vd 192.168.99.99) để thấy kết quả "Request timed out" — nhận biết dấu hiệu mất kết nối.</div>`} },
+    { d:"Thứ 7", date:"Ngày 27",
+      jp:{t:"Nghe tổng hợp Bài 1–9", h:`<p>Nghe lại các đoạn hội thoại chủ đề Bài 1-9 đã luyện trong tháng: chào hỏi, tự giới thiệu, gia đình, ăn uống, gọi món, nhà cửa, vị trí, giờ giấc.</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Nghe 1 đoạn dài hơn (5-10 phút) tổng hợp nhiều chủ đề, viết lại ít nhất 8 từ/cụm quen thuộc anh nhận ra được.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Tự đặt 3 câu hỏi bằng tiếng Nhật (dùng か đã học) và tự trả lời, như đang luyện phỏng vấn.</div>`},
+      it:{t:"Ôn 5 lĩnh vực CNTT", h:`<p>Programming / Database / Network / OS / Security — ôn lại toàn bộ nền tảng CNTT đã học trong tháng.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Với mỗi lĩnh vực, viết 1 công cụ/lệnh cụ thể anh đã thực hành trong tháng (vd Network → ping/ipconfig).</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tự chấm điểm bản thân (1-5) cho từng lĩnh vực trong 5 lĩnh vực CNTT, để biết tháng sau cần tập trung vào đâu.</div>`},
+      dh:{t:"DNS troubleshooting", h:`<p>Nếu ping IP được nhưng ping tên miền không được → nghi ngờ lỗi DNS — một trong những lỗi mạng phổ biến nhất mà IT Support hay gặp.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết ra các bước anh sẽ làm nếu gặp đúng tình huống này (ping IP OK, ping tên miền lỗi) — không cần làm thật, chỉ liệt kê logic.</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Nghĩ thêm 1 cách khắc phục khi nghi ngờ lỗi DNS (gợi ý: đổi DNS server sang 8.8.8.8, hoặc chạy lệnh <code>ipconfig /flushdns</code>).</div>`} },
+    { d:"Chủ nhật", date:"Ngày 28",
+      jp:{t:"🎯 Kiểm tra tháng 1: Tự giới thiệu 2–3 phút", h:`<p>Tổng ôn: bảng chữ cái, です hệ (Bài 1-3), gia đình/sở thích (Bài 4-6), nhà/vị trí/giờ giấc (Bài 7-9).</p>
+        <p><b>Yêu cầu kiểm tra:</b> tự nói liên tục 2–3 phút bằng tiếng Nhật, không cầm giấy, nội dung gồm: tên/quốc tịch (です), gia đình/nơi ở (Bài4), sở thích ăn uống (Bài5), mô tả nhà (Bài7), giờ giấc làm việc (Bài9).</p>
+        <div class="prac jp"><b>📝 Thực hành 1</b>Viết kịch bản đầy đủ 2-3 phút nói trước, đọc thử để canh thời gian.</div>
+        <div class="prac jp"><b>📝 Thực hành 2</b>Thu âm bài nói hoàn chỉnh không nhìn giấy, nghe lại và tự chấm điểm phát âm + độ trôi chảy trên thang 5.</div>`},
+      it:{t:"Ôn tháng 1", h:`<p>Tổng ôn Windows + Network + Programming cơ bản đã học trong 4 tuần.</p>
+        <div class="prac it"><b>📝 Thực hành 1</b>Tự liệt kê lại toàn bộ lệnh CMD đã học tháng này (ipconfig, ping, nslookup) và công dụng của mỗi lệnh.</div>
+        <div class="prac it"><b>📝 Thực hành 2</b>Tự liệt kê 5 công cụ Windows đã dùng trong tháng (Task Manager, Device Manager, Event Viewer, File Explorer, Settings) và 1 tình huống thực tế nên dùng mỗi công cụ.</div>`},
+      dh:{t:"🎯 Kiểm tra: Troubleshooting hoàn chỉnh", h:`<p><b>Tình huống:</b> Máy tính không vào được Internet. Kiểm tra theo thứ tự:</p>
+        <div class="ex">Wi-Fi/LAN → IP → Gateway → Ping Gateway → Ping Internet → DNS → Browser</div>
+        <p>Viết ra: Problem → Check → Cause → Solution, dùng đúng các lệnh đã học cả tháng.</p>
+        <div class="prac dh"><b>📝 Thực hành 1</b>Viết đầy đủ bảng Problem→Check→Cause→Solution cho tình huống trên bằng chính các lệnh và khái niệm đã học cả tháng (ipconfig, ping, nslookup, Gateway, DNS).</div>
+        <div class="prac dh"><b>📝 Thực hành 2</b>Viết thêm 1 tình huống troubleshooting khác tự nghĩ ra (vd "máy in không in được", "không mở được 1 trang web cụ thể") và áp dụng cùng quy trình Problem→Check→Cause→Solution.</div>` } },
+  ]
+},
+];
+/* ============ STATE ============ */
+let currentUser = null;
+let progress = {};     // { "w0d0-jp": "full" | "half", ... }
+let saveTimer = null;
+
+const STATES = ["", "half", "full"]; // cycle order
+const STATE_ICON = { "":"", "half":"◐", "full":"☑" };
+
+function dayKey(w,d,subj){ return `w${w}d${d}-${subj}`; }
+function localKey(){ return "lichhoc_progress_" + (currentUser ? currentUser.uid : "guest"); }
+
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(localKey());
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveLocal(data){
+  localStorage.setItem(localKey(), JSON.stringify(data));
+}
+
+async function loadFromFirestore(){
+  const ref = doc(db, "users", currentUser.uid, "progress", "month1");
+  const snap = await getDoc(ref);
+  if(snap.exists()) return snap.data();
+  return null;
+}
+async function saveToFirestore(data){
+  const ref = doc(db, "users", currentUser.uid, "progress", "month1");
+  await setDoc(ref, { ...data, updatedAt: Date.now() }, { merge:false });
+}
+
+function scheduleSave(){
+  saveLocal({ ...progress, updatedAt: Date.now() });
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ saveToFirestore(progress).catch(console.error); }, 800);
+}
+
+/* ============ RENDER ============ */
+function render(){
+  const container = document.getElementById("weeksContainer");
+  container.innerHTML = "";
+  WEEKS.forEach((week, wi)=>{
+    const wrap = document.createElement("div");
+    wrap.className = "weekBlock";
+
+    const head = document.createElement("div");
+    head.className = "weekHeader";
+    head.innerHTML = `<div><div class="wt">${week.title}</div><div class="wg">${week.goal}</div></div><div class="chev">▾</div>`;
+    head.onclick = ()=>{
+      head.classList.toggle("open");
+      body.classList.toggle("open");
+    };
+    wrap.appendChild(head);
+
+    const body = document.createElement("div");
+    body.className = "weekBody" + (wi===0 ? " open" : "");
+    if(wi===0) head.classList.add("open");
+
+    week.days.forEach((day, di)=>{
+      const card = document.createElement("div");
+      card.className = "dayCard";
+
+      const dhead = document.createElement("div");
+      dhead.className = "dayHead";
+      dhead.innerHTML = `<div><div class="dn">${day.d} <span class="dd">— ${day.date}</span></div></div>
+        <div class="dots" id="dots-${wi}-${di}"></div>`;
+      dhead.onclick = ()=>{ dbody.classList.toggle("open"); };
+      card.appendChild(dhead);
+
+      const dbody = document.createElement("div");
+      dbody.className = "dayBody";
+
+      [["jp","🇯🇵 Tiếng Nhật",day.jp],["it","💻 IT",day.it],["dh","🎓 Đại học CNTT",day.dh]].forEach(([key,label,info])=>{
+        const subj = document.createElement("div");
+        subj.className = "subj";
+        const k = dayKey(wi,di,key);
+        const state = progress[k] || "";
+        subj.innerHTML = `
+          <div class="subjHead">
+            <button class="statusBtn ${state==="full"?"state-full":state==="half"?"state-half":""}" data-key="${k}">${STATE_ICON[state]||""}</button>
+            <div class="subjLabel">${label} <span class="tag ${key}">${info.t}</span></div>
+          </div>
+          <div class="content" style="display:none">${info.h}</div>
+        `;
+        subj.querySelector(".subjLabel").onclick = ()=>{
+          const c = subj.querySelector(".content");
+          c.style.display = c.style.display === "none" ? "block" : "none";
+        };
+        subj.querySelector(".statusBtn").onclick = (e)=>{
+          e.stopPropagation();
+          const idx = STATES.indexOf(progress[k] || "");
+          const next = STATES[(idx+1) % STATES.length];
+          if(next === "") delete progress[k]; else progress[k] = next;
+          scheduleSave();
+          render();
+        };
+        dbody.appendChild(subj);
+      });
+
+      card.appendChild(dbody);
+      body.appendChild(card);
+
+      // dots
+      setTimeout(()=>{
+        const dotsEl = document.getElementById(`dots-${wi}-${di}`);
+        if(!dotsEl) return;
+        dotsEl.innerHTML = ["jp","it","dh"].map(key=>{
+          const s = progress[dayKey(wi,di,key)] || "";
+          const cls = s ? `on-${key}` : "";
+          const half = s === "half" ? "half" : "";
+          return `<div class="dot ${cls} ${half}"></div>`;
+        }).join("");
+      },0);
+    });
+
+    wrap.appendChild(body);
+    container.appendChild(wrap);
+  });
+
+  updateProgressBar();
+}
+
+function updateProgressBar(){
+  const totalSubjSlots = WEEKS.reduce((sum,w)=>sum + w.days.length*3, 0);
+  let score = 0;
+  Object.values(progress).forEach(v=>{
+    if(v === "full") score += 1;
+    else if(v === "half") score += 0.5;
+  });
+  const pct = Math.round((score/totalSubjSlots)*100);
+  document.getElementById("progressPct").textContent = pct + "%";
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+/* ============ AUTH ============ */
+let isRegisterMode = false;
+const authTitle = document.getElementById("authTitle");
+const authSub = document.getElementById("authSub");
+const authSubmit = document.getElementById("authSubmit");
+const authToggle = document.getElementById("authToggle");
+const authErr = document.getElementById("authErr");
+
+authToggle.onclick = ()=>{
+  isRegisterMode = !isRegisterMode;
+  authTitle.textContent = isRegisterMode ? "Tạo tài khoản" : "Đăng nhập";
+  authSub.textContent = isRegisterMode ? "Tạo tài khoản để lưu tiến độ học." : "Đăng nhập để tiến độ học đồng bộ trên mọi thiết bị.";
+  authSubmit.textContent = isRegisterMode ? "Tạo tài khoản" : "Đăng nhập";
+  authToggle.textContent = isRegisterMode ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Tạo tài khoản mới";
+  authErr.textContent = "";
+};
+
+authSubmit.onclick = async ()=>{
+  const email = document.getElementById("authEmail").value.trim();
+  const pass = document.getElementById("authPass").value;
+  authErr.textContent = "";
+  if(!email || !pass){ authErr.textContent = "Nhập đầy đủ email và mật khẩu."; return; }
+  try{
+    if(isRegisterMode){
+      await createUserWithEmailAndPassword(auth, email, pass);
+    }else{
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
+  }catch(e){
+    authErr.textContent = translateAuthError(e.code);
+  }
+};
+
+function translateAuthError(code){
+  const map = {
+    "auth/invalid-email":"Email không hợp lệ.",
+    "auth/user-not-found":"Tài khoản không tồn tại.",
+    "auth/wrong-password":"Sai mật khẩu.",
+    "auth/email-already-in-use":"Email đã được đăng ký.",
+    "auth/weak-password":"Mật khẩu cần ít nhất 6 ký tự.",
+    "auth/invalid-credential":"Email hoặc mật khẩu không đúng.",
+  };
+  return map[code] || "Có lỗi xảy ra, thử lại.";
+}
+
+document.getElementById("logoutBtn").onclick = ()=> signOut(auth);
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if(user){
+    document.getElementById("authScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("userEmail").textContent = user.email;
+
+    // dual-storage: load local first for instant UI, then reconcile with Firestore
+    const local = loadLocal();
+    progress = { ...local };
+    delete progress.updatedAt;
+    render();
+
+    try{
+      const remote = await loadFromFirestore();
+      if(remote){
+        const localTs = local.updatedAt || 0;
+        const remoteTs = remote.updatedAt || 0;
+        if(remoteTs >= localTs){
+          progress = { ...remote };
+          delete progress.updatedAt;
+          saveLocal({ ...progress, updatedAt: remoteTs });
+          render();
+        }else{
+          await saveToFirestore(progress);
+        }
+      }else{
+        await saveToFirestore(progress);
+      }
+    }catch(e){ console.error("Sync error:", e); }
+  }else{
+    document.getElementById("authScreen").style.display = "block";
+    document.getElementById("app").style.display = "none";
+  }
+});
+</script>
+</body>
+</html>
